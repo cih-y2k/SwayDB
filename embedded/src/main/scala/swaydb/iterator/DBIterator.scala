@@ -39,7 +39,6 @@ case class DBIterator[K, V](private val db: SwayDB,
                             private val reverse: Boolean = false,
                             private val till: (K, V) => Boolean = (_: K, _: V) => true)(implicit keySerializer: Serializer[K],
                                                                                         valueSerializer: Serializer[V],
-                                                                                        ordering: Ordering[Slice[Byte]],
                                                                                         table: Table) extends Iterable[(K, V)] {
 
   def from(key: K): DBIterator[K, V] =
@@ -124,14 +123,16 @@ case class DBIterator[K, V](private val db: SwayDB,
             case Success(value) =>
               value match {
                 case Some(keyValue @ (key, value)) =>
+
                   val keyT = key.read[K]
                   val valueT = value.read[V]
                   if (till(keyT, valueT)) {
                     nextKeyValueBytes = keyValue
                     nextKeyValueTyped = (keyT, valueT)
                     true
-                  } else
+                  } else {
                     false
+                  }
 
                 case _ =>
                   false
@@ -153,8 +154,9 @@ case class DBIterator[K, V](private val db: SwayDB,
                   nextKeyValueBytes = keyValue
                   nextKeyValueTyped = (keyT, valueT)
                   true
-                } else
+                } else {
                   false
+                }
 
               case _ =>
                 false

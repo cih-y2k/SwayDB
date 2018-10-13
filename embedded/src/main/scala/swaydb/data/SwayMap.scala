@@ -26,14 +26,14 @@ import swaydb.data.slice.Slice
 import swaydb.iterator.{DBIterator, KeysIterator}
 import swaydb.serializers.{Serializer, _}
 import swaydb.table.Table
-import swaydb.{Batch, SwayDB}
+import swaydb.{Batch, SwayDBTable}
 
 import scala.concurrent.duration.{Deadline, FiniteDuration}
 import scala.util.Try
 
 object SwayMap {
 
-  def apply[K, V](db: SwayDB,
+  def apply[K, V](db: SwayDBTable,
                   table: Table)(implicit keySerializer: Serializer[K],
                                 valueSerializer: Serializer[V],
                                 ordering: Ordering[Slice[Byte]]): SwayMap[K, V] =
@@ -45,10 +45,10 @@ object SwayMap {
   *
   * For documentation check - http://swaydb.io/api/
   */
-class SwayMap[K, V](db: SwayDB)(implicit keySerializer: Serializer[K],
-                                valueSerializer: Serializer[V],
-                                ordering: Ordering[Slice[Byte]],
-                                table: Table) extends DBIterator[K, V](db, None) {
+class SwayMap[K, V](db: SwayDBTable)(implicit keySerializer: Serializer[K],
+                                     valueSerializer: Serializer[V],
+                                     ordering: Ordering[Slice[Byte]],
+                                     table: Table) extends DBIterator[K, V](db, None) {
 
   def subMap(key: K, value: V): Try[SwayMap[K, V]] =
     db.subTable(key, Some(value)) map {

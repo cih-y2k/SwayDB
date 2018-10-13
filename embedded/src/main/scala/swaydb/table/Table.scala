@@ -95,14 +95,14 @@ private[swaydb] object Table {
     Table(start = start, row = row, subTable = sub, end = end)
   }
 
-  def buildSubTableRow(subTableId: Slice[Byte], parent: Table): Slice[Byte] =
-    Slice.create[Byte](parent.subTable.size + subTableId.size)
-      .addAll(parent.subTable)
+  def buildSubTableRow(subTableId: Slice[Byte], table: Table): Slice[Byte] =
+    Slice.create[Byte](table.subTable.size + subTableId.size)
+      .addAll(table.subTable)
       .addAll(subTableId)
 
-  def buildRowKey(row: Slice[Byte], parent: Table): Slice[Byte] =
-    Slice.create[Byte](parent.row.size + row.size)
-      .addAll(parent.row)
+  def buildRowKey(row: Slice[Byte])(implicit table: Table): Slice[Byte] =
+    Slice.create[Byte](table.row.size + row.size)
+      .addAll(table.row)
       .addAll(row)
 
   def dropTableBytes(key: Slice[Byte]): Slice[Byte] = {
@@ -110,4 +110,8 @@ private[swaydb] object Table {
     reader.skip(reader.readIntUnsigned() + 1) //also skip the last tableIndicator byte.
     reader.readRemaining()
   }
+
+  def dropTableBytes(keyValue: (Slice[Byte], Option[Slice[Byte]])): (Slice[Byte], Option[Slice[Byte]]) =
+    (Table.dropTableBytes(keyValue._1), keyValue._2)
+
 }
