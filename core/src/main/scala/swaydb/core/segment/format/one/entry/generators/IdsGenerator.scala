@@ -31,14 +31,13 @@ import swaydb.core.segment.format.one.entry.id._
 object IdsGenerator extends App {
 
   def write(entry: String,
-            key: String,
             startId: Int): Int = {
-    val fullKeyId = s"${entry}${key}AppliedFunctionsEntryId"
+    val fullKeyId = s"${entry}EntryId"
     val targetIdClass = IO.createFileIfAbsent(Paths.get(s"${System.getProperty("user.dir")}/core/src/main/scala/swaydb/core/segment/format/one/entry/id/$fullKeyId.scala")).get
     val writer = new PrintWriter(targetIdClass.toFile)
     writer.write("")
 
-    val templateClass = if (entry == "Remove") "TemplateRemoveEntryId" else "TemplateEntryId"
+    val templateClass = if (entry == "Remove") classOf[TemplateRemoveEntryId].getSimpleName else classOf[TemplateEntryId].getSimpleName
 
     val maxId =
       Source
@@ -50,10 +49,6 @@ object IdsGenerator extends App {
               if (!line.contains("remove this")) {
                 val newLine =
                   line
-                    //                    .replace("package swaydb.core.segment.format.one.entry.generators", "package swaydb.core.segment.format.one.entry.id")
-                    //                    .replace("Key.Uncompressed", s"Key.$key")
-                    .replace("AppliedFunctions.Empty", s"AppliedFunctions.$key")
-                    .replace("EmptyAppliedFunctions", s"${key}AppliedFunctions")
                     .replace(templateClass, fullKeyId)
                     .replace(s"-1", s"$id")
                 writer.append("\n" + newLine)
@@ -85,35 +80,21 @@ object IdsGenerator extends App {
     */
   def ids: Seq[GeneratedEntryId] =
     Seq(
-      PutEmptyAppliedFunctionsEntryId,
-      PutNonEmptyAppliedFunctionsEntryId,
-
-      GroupEmptyAppliedFunctionsEntryId,
-      GroupNonEmptyAppliedFunctionsEntryId,
-
-      RemoveEmptyAppliedFunctionsEntryId,
-      RemoveNonEmptyAppliedFunctionsEntryId,
-
-      UpdateEmptyAppliedFunctionsEntryId,
-      UpdateNonEmptyAppliedFunctionsEntryId,
-
-      RangeEmptyAppliedFunctionsEntryId,
-      RangeNonEmptyAppliedFunctionsEntryId
+      PutEntryId,
+      GroupEntryId,
+      RemoveEntryId,
+      UpdateEntryId,
+      RangeEntryId
     )
 
   def entries = Seq("Put", "Group", "Remove", "Range", "Update")
-
-  def keys = Seq("Empty", "NonEmpty")
 
   val minId = 0
 
   def maxKey =
     entries.foldLeft(minId) {
       case (id, entry) =>
-        keys.foldLeft(id) {
-          case (id, key) =>
-            write(entry, key, id) + 1
-        }
+        write(entry, id) + 1
     }
 
   println("minId: " + minId)

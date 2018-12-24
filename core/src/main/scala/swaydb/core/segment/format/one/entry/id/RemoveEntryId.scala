@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2018 Simer Plaha (@simerplaha)
  *
@@ -19,6 +20,10 @@
 
 package swaydb.core.segment.format.one.entry.id
 
+/** ******************************************
+  * ************ GENERATED CLASS *************
+  * ******************************************/
+
 import swaydb.core.segment.format.one.entry.id.EntryId._
 import swaydb.core.util.PipeOps._
 import swaydb.macros.SealedList
@@ -29,14 +34,13 @@ import swaydb.macros.SealedList
   * It is a base template class for generating IDs for all other key-value type using
   * [[swaydb.core.segment.format.one.entry.generators.IdsGenerator]] which gives all key-values types unique ids.
   *
-  * Commenting anything with "remove this"
   * will remove that line for the target generated class.
   */
-sealed abstract class TemplateRemoveEntryId(override val id: Int) extends EntryId(id)
-object TemplateRemoveEntryId extends GeneratedEntryId {
+sealed abstract class RemoveEntryId(override val id: Int) extends EntryId(id)
+object RemoveEntryId extends GeneratedEntryId {
 
-  override val emptyAppliedFunctions: EntryId.AppliedFunctions.Empty = TemplateRemoveEntryId.EmptyAppliedFunctions
-  override val nonEmptyAppliedFunctions: EntryId.AppliedFunctions.NonEmpty = TemplateRemoveEntryId.NonEmptyAppliedFunctions
+  override val emptyAppliedFunctions: EntryId.AppliedFunctions.Empty = RemoveEntryId.EmptyAppliedFunctions
+  override val nonEmptyAppliedFunctions: EntryId.AppliedFunctions.NonEmpty = RemoveEntryId.NonEmptyAppliedFunctions
 
   sealed trait EmptyAppliedFunctions extends AppliedFunctions.Empty {
     override val keyPartiallyCompressed: Key.PartiallyCompressed = EmptyAppliedFunctions.KeyPartiallyCompressed
@@ -63,16 +67,16 @@ object TemplateRemoveEntryId extends GeneratedEntryId {
         override val deadlineUncompressed: Deadline.Uncompressed = NoValue.DeadlineUncompressed
       }
       object NoValue extends NoValue {
-        case object NoDeadline extends TemplateRemoveEntryId(-1) with Deadline.NoDeadline with NoValue
-        case object DeadlineOneCompressed extends TemplateRemoveEntryId(-1) with Deadline.OneCompressed with NoValue
-        case object DeadlineTwoCompressed extends TemplateRemoveEntryId(-1) with Deadline.TwoCompressed with NoValue
-        case object DeadlineThreeCompressed extends TemplateRemoveEntryId(-1) with Deadline.ThreeCompressed with NoValue
-        case object DeadlineFourCompressed extends TemplateRemoveEntryId(-1) with Deadline.FourCompressed with NoValue
-        case object DeadlineFiveCompressed extends TemplateRemoveEntryId(-1) with Deadline.FiveCompressed with NoValue
-        case object DeadlineSixCompressed extends TemplateRemoveEntryId(-1) with Deadline.SixCompressed with NoValue
-        case object DeadlineSevenCompressed extends TemplateRemoveEntryId(-1) with Deadline.SevenCompressed with NoValue
-        case object DeadlineFullyCompressed extends TemplateRemoveEntryId(-1) with Deadline.FullyCompressed with NoValue
-        case object DeadlineUncompressed extends TemplateRemoveEntryId(-1) with Deadline.Uncompressed with NoValue
+        case object NoDeadline extends RemoveEntryId(2642) with Deadline.NoDeadline with NoValue
+        case object DeadlineOneCompressed extends RemoveEntryId(2643) with Deadline.OneCompressed with NoValue
+        case object DeadlineTwoCompressed extends RemoveEntryId(2644) with Deadline.TwoCompressed with NoValue
+        case object DeadlineThreeCompressed extends RemoveEntryId(2645) with Deadline.ThreeCompressed with NoValue
+        case object DeadlineFourCompressed extends RemoveEntryId(2646) with Deadline.FourCompressed with NoValue
+        case object DeadlineFiveCompressed extends RemoveEntryId(2647) with Deadline.FiveCompressed with NoValue
+        case object DeadlineSixCompressed extends RemoveEntryId(2648) with Deadline.SixCompressed with NoValue
+        case object DeadlineSevenCompressed extends RemoveEntryId(2649) with Deadline.SevenCompressed with NoValue
+        case object DeadlineFullyCompressed extends RemoveEntryId(2650) with Deadline.FullyCompressed with NoValue
+        case object DeadlineUncompressed extends RemoveEntryId(2651) with Deadline.Uncompressed with NoValue
       }
     }
 
@@ -95,16 +99,16 @@ object TemplateRemoveEntryId extends GeneratedEntryId {
         override val deadlineUncompressed: Deadline.Uncompressed = NoValue.DeadlineUncompressed
       }
       object NoValue extends NoValue {
-        case object NoDeadline extends TemplateRemoveEntryId(-1) with Deadline.NoDeadline with NoValue
-        case object DeadlineOneCompressed extends TemplateRemoveEntryId(-1) with Deadline.OneCompressed with NoValue
-        case object DeadlineTwoCompressed extends TemplateRemoveEntryId(-1) with Deadline.TwoCompressed with NoValue
-        case object DeadlineThreeCompressed extends TemplateRemoveEntryId(-1) with Deadline.ThreeCompressed with NoValue
-        case object DeadlineFourCompressed extends TemplateRemoveEntryId(-1) with Deadline.FourCompressed with NoValue
-        case object DeadlineFiveCompressed extends TemplateRemoveEntryId(-1) with Deadline.FiveCompressed with NoValue
-        case object DeadlineSixCompressed extends TemplateRemoveEntryId(-1) with Deadline.SixCompressed with NoValue
-        case object DeadlineSevenCompressed extends TemplateRemoveEntryId(-1) with Deadline.SevenCompressed with NoValue
-        case object DeadlineFullyCompressed extends TemplateRemoveEntryId(-1) with Deadline.FullyCompressed with NoValue
-        case object DeadlineUncompressed extends TemplateRemoveEntryId(-1) with Deadline.Uncompressed with NoValue
+        case object NoDeadline extends RemoveEntryId(2652) with Deadline.NoDeadline with NoValue
+        case object DeadlineOneCompressed extends RemoveEntryId(2653) with Deadline.OneCompressed with NoValue
+        case object DeadlineTwoCompressed extends RemoveEntryId(2654) with Deadline.TwoCompressed with NoValue
+        case object DeadlineThreeCompressed extends RemoveEntryId(2655) with Deadline.ThreeCompressed with NoValue
+        case object DeadlineFourCompressed extends RemoveEntryId(2656) with Deadline.FourCompressed with NoValue
+        case object DeadlineFiveCompressed extends RemoveEntryId(2657) with Deadline.FiveCompressed with NoValue
+        case object DeadlineSixCompressed extends RemoveEntryId(2658) with Deadline.SixCompressed with NoValue
+        case object DeadlineSevenCompressed extends RemoveEntryId(2659) with Deadline.SevenCompressed with NoValue
+        case object DeadlineFullyCompressed extends RemoveEntryId(2660) with Deadline.FullyCompressed with NoValue
+        case object DeadlineUncompressed extends RemoveEntryId(2661) with Deadline.Uncompressed with NoValue
       }
     }
 
@@ -127,16 +131,16 @@ object TemplateRemoveEntryId extends GeneratedEntryId {
         override val deadlineUncompressed: Deadline.Uncompressed = NoValue.DeadlineUncompressed
       }
       object NoValue extends NoValue {
-        case object NoDeadline extends TemplateRemoveEntryId(-1) with Deadline.NoDeadline with NoValue
-        case object DeadlineOneCompressed extends TemplateRemoveEntryId(-1) with Deadline.OneCompressed with NoValue
-        case object DeadlineTwoCompressed extends TemplateRemoveEntryId(-1) with Deadline.TwoCompressed with NoValue
-        case object DeadlineThreeCompressed extends TemplateRemoveEntryId(-1) with Deadline.ThreeCompressed with NoValue
-        case object DeadlineFourCompressed extends TemplateRemoveEntryId(-1) with Deadline.FourCompressed with NoValue
-        case object DeadlineFiveCompressed extends TemplateRemoveEntryId(-1) with Deadline.FiveCompressed with NoValue
-        case object DeadlineSixCompressed extends TemplateRemoveEntryId(-1) with Deadline.SixCompressed with NoValue
-        case object DeadlineSevenCompressed extends TemplateRemoveEntryId(-1) with Deadline.SevenCompressed with NoValue
-        case object DeadlineFullyCompressed extends TemplateRemoveEntryId(-1) with Deadline.FullyCompressed with NoValue
-        case object DeadlineUncompressed extends TemplateRemoveEntryId(-1) with Deadline.Uncompressed with NoValue
+        case object NoDeadline extends RemoveEntryId(2662) with Deadline.NoDeadline with NoValue
+        case object DeadlineOneCompressed extends RemoveEntryId(2663) with Deadline.OneCompressed with NoValue
+        case object DeadlineTwoCompressed extends RemoveEntryId(2664) with Deadline.TwoCompressed with NoValue
+        case object DeadlineThreeCompressed extends RemoveEntryId(2665) with Deadline.ThreeCompressed with NoValue
+        case object DeadlineFourCompressed extends RemoveEntryId(2666) with Deadline.FourCompressed with NoValue
+        case object DeadlineFiveCompressed extends RemoveEntryId(2667) with Deadline.FiveCompressed with NoValue
+        case object DeadlineSixCompressed extends RemoveEntryId(2668) with Deadline.SixCompressed with NoValue
+        case object DeadlineSevenCompressed extends RemoveEntryId(2669) with Deadline.SevenCompressed with NoValue
+        case object DeadlineFullyCompressed extends RemoveEntryId(2670) with Deadline.FullyCompressed with NoValue
+        case object DeadlineUncompressed extends RemoveEntryId(2671) with Deadline.Uncompressed with NoValue
       }
     }
   }
@@ -166,16 +170,16 @@ object TemplateRemoveEntryId extends GeneratedEntryId {
         override val deadlineUncompressed: Deadline.Uncompressed = NoValue.DeadlineUncompressed
       }
       object NoValue extends NoValue {
-        case object NoDeadline extends TemplateRemoveEntryId(-1) with Deadline.NoDeadline with NoValue
-        case object DeadlineOneCompressed extends TemplateRemoveEntryId(-1) with Deadline.OneCompressed with NoValue
-        case object DeadlineTwoCompressed extends TemplateRemoveEntryId(-1) with Deadline.TwoCompressed with NoValue
-        case object DeadlineThreeCompressed extends TemplateRemoveEntryId(-1) with Deadline.ThreeCompressed with NoValue
-        case object DeadlineFourCompressed extends TemplateRemoveEntryId(-1) with Deadline.FourCompressed with NoValue
-        case object DeadlineFiveCompressed extends TemplateRemoveEntryId(-1) with Deadline.FiveCompressed with NoValue
-        case object DeadlineSixCompressed extends TemplateRemoveEntryId(-1) with Deadline.SixCompressed with NoValue
-        case object DeadlineSevenCompressed extends TemplateRemoveEntryId(-1) with Deadline.SevenCompressed with NoValue
-        case object DeadlineFullyCompressed extends TemplateRemoveEntryId(-1) with Deadline.FullyCompressed with NoValue
-        case object DeadlineUncompressed extends TemplateRemoveEntryId(-1) with Deadline.Uncompressed with NoValue
+        case object NoDeadline extends RemoveEntryId(2672) with Deadline.NoDeadline with NoValue
+        case object DeadlineOneCompressed extends RemoveEntryId(2673) with Deadline.OneCompressed with NoValue
+        case object DeadlineTwoCompressed extends RemoveEntryId(2674) with Deadline.TwoCompressed with NoValue
+        case object DeadlineThreeCompressed extends RemoveEntryId(2675) with Deadline.ThreeCompressed with NoValue
+        case object DeadlineFourCompressed extends RemoveEntryId(2676) with Deadline.FourCompressed with NoValue
+        case object DeadlineFiveCompressed extends RemoveEntryId(2677) with Deadline.FiveCompressed with NoValue
+        case object DeadlineSixCompressed extends RemoveEntryId(2678) with Deadline.SixCompressed with NoValue
+        case object DeadlineSevenCompressed extends RemoveEntryId(2679) with Deadline.SevenCompressed with NoValue
+        case object DeadlineFullyCompressed extends RemoveEntryId(2680) with Deadline.FullyCompressed with NoValue
+        case object DeadlineUncompressed extends RemoveEntryId(2681) with Deadline.Uncompressed with NoValue
       }
     }
 
@@ -198,16 +202,16 @@ object TemplateRemoveEntryId extends GeneratedEntryId {
         override val deadlineUncompressed: Deadline.Uncompressed = NoValue.DeadlineUncompressed
       }
       object NoValue extends NoValue {
-        case object NoDeadline extends TemplateRemoveEntryId(-1) with Deadline.NoDeadline with NoValue
-        case object DeadlineOneCompressed extends TemplateRemoveEntryId(-1) with Deadline.OneCompressed with NoValue
-        case object DeadlineTwoCompressed extends TemplateRemoveEntryId(-1) with Deadline.TwoCompressed with NoValue
-        case object DeadlineThreeCompressed extends TemplateRemoveEntryId(-1) with Deadline.ThreeCompressed with NoValue
-        case object DeadlineFourCompressed extends TemplateRemoveEntryId(-1) with Deadline.FourCompressed with NoValue
-        case object DeadlineFiveCompressed extends TemplateRemoveEntryId(-1) with Deadline.FiveCompressed with NoValue
-        case object DeadlineSixCompressed extends TemplateRemoveEntryId(-1) with Deadline.SixCompressed with NoValue
-        case object DeadlineSevenCompressed extends TemplateRemoveEntryId(-1) with Deadline.SevenCompressed with NoValue
-        case object DeadlineFullyCompressed extends TemplateRemoveEntryId(-1) with Deadline.FullyCompressed with NoValue
-        case object DeadlineUncompressed extends TemplateRemoveEntryId(-1) with Deadline.Uncompressed with NoValue
+        case object NoDeadline extends RemoveEntryId(2682) with Deadline.NoDeadline with NoValue
+        case object DeadlineOneCompressed extends RemoveEntryId(2683) with Deadline.OneCompressed with NoValue
+        case object DeadlineTwoCompressed extends RemoveEntryId(2684) with Deadline.TwoCompressed with NoValue
+        case object DeadlineThreeCompressed extends RemoveEntryId(2685) with Deadline.ThreeCompressed with NoValue
+        case object DeadlineFourCompressed extends RemoveEntryId(2686) with Deadline.FourCompressed with NoValue
+        case object DeadlineFiveCompressed extends RemoveEntryId(2687) with Deadline.FiveCompressed with NoValue
+        case object DeadlineSixCompressed extends RemoveEntryId(2688) with Deadline.SixCompressed with NoValue
+        case object DeadlineSevenCompressed extends RemoveEntryId(2689) with Deadline.SevenCompressed with NoValue
+        case object DeadlineFullyCompressed extends RemoveEntryId(2690) with Deadline.FullyCompressed with NoValue
+        case object DeadlineUncompressed extends RemoveEntryId(2691) with Deadline.Uncompressed with NoValue
       }
     }
 
@@ -230,22 +234,22 @@ object TemplateRemoveEntryId extends GeneratedEntryId {
         override val deadlineUncompressed: Deadline.Uncompressed = NoValue.DeadlineUncompressed
       }
       object NoValue extends NoValue {
-        case object NoDeadline extends TemplateRemoveEntryId(-1) with Deadline.NoDeadline with NoValue
-        case object DeadlineOneCompressed extends TemplateRemoveEntryId(-1) with Deadline.OneCompressed with NoValue
-        case object DeadlineTwoCompressed extends TemplateRemoveEntryId(-1) with Deadline.TwoCompressed with NoValue
-        case object DeadlineThreeCompressed extends TemplateRemoveEntryId(-1) with Deadline.ThreeCompressed with NoValue
-        case object DeadlineFourCompressed extends TemplateRemoveEntryId(-1) with Deadline.FourCompressed with NoValue
-        case object DeadlineFiveCompressed extends TemplateRemoveEntryId(-1) with Deadline.FiveCompressed with NoValue
-        case object DeadlineSixCompressed extends TemplateRemoveEntryId(-1) with Deadline.SixCompressed with NoValue
-        case object DeadlineSevenCompressed extends TemplateRemoveEntryId(-1) with Deadline.SevenCompressed with NoValue
-        case object DeadlineFullyCompressed extends TemplateRemoveEntryId(-1) with Deadline.FullyCompressed with NoValue
-        case object DeadlineUncompressed extends TemplateRemoveEntryId(-1) with Deadline.Uncompressed with NoValue
+        case object NoDeadline extends RemoveEntryId(2692) with Deadline.NoDeadline with NoValue
+        case object DeadlineOneCompressed extends RemoveEntryId(2693) with Deadline.OneCompressed with NoValue
+        case object DeadlineTwoCompressed extends RemoveEntryId(2694) with Deadline.TwoCompressed with NoValue
+        case object DeadlineThreeCompressed extends RemoveEntryId(2695) with Deadline.ThreeCompressed with NoValue
+        case object DeadlineFourCompressed extends RemoveEntryId(2696) with Deadline.FourCompressed with NoValue
+        case object DeadlineFiveCompressed extends RemoveEntryId(2697) with Deadline.FiveCompressed with NoValue
+        case object DeadlineSixCompressed extends RemoveEntryId(2698) with Deadline.SixCompressed with NoValue
+        case object DeadlineSevenCompressed extends RemoveEntryId(2699) with Deadline.SevenCompressed with NoValue
+        case object DeadlineFullyCompressed extends RemoveEntryId(2700) with Deadline.FullyCompressed with NoValue
+        case object DeadlineUncompressed extends RemoveEntryId(2701) with Deadline.Uncompressed with NoValue
       }
     }
   }
 
 
-  override def keyIdsList: List[TemplateRemoveEntryId] = SealedList.list[TemplateRemoveEntryId].sortBy(_.id)
+  override def keyIdsList: List[RemoveEntryId] = SealedList.list[RemoveEntryId].sortBy(_.id)
 
   override val (headId, lastId) = keyIdsList ==> {
     keyIdsList =>
