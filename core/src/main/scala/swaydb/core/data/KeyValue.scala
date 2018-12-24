@@ -28,6 +28,7 @@ import swaydb.core.group.compression.{GroupCompressor, GroupDecompressor, GroupK
 import swaydb.core.io.reader.Reader
 import swaydb.core.map.serializer.RangeValueSerializer
 import swaydb.core.queue.KeyValueLimiter
+import swaydb.core.segment.format.one.entry.id._
 import swaydb.core.segment.format.one.entry.writer._
 import swaydb.core.segment.{SegmentCache, SegmentCacheInitializer}
 import swaydb.core.util.CollectionUtil._
@@ -732,7 +733,13 @@ private[core] object Transient {
     override val isRemoveRange = false
     override val getOrFetchValue: Try[Option[Slice[Byte]]] = TryUtil.successNone
     override val value: Option[Slice[Byte]] = None
-    override val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition) = RemoveEntryWriter.write(current = this)
+    override val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition) =
+      KeyValueEntryWriter.write(
+        current = this,
+        entryId = RemoveEntryId,
+        compressDuplicateValues = true
+      )
+
     override val hasValueEntryBytes: Boolean = previous.exists(_.hasValueEntryBytes) || valueEntryBytes.exists(_.nonEmpty)
     override val stats =
       Stats(
@@ -929,7 +936,11 @@ private[core] object Transient {
     override val isRange: Boolean = false
 
     val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition): (Slice[Byte], Option[Slice[Byte]], Int, Int) =
-      PutEntryWriter.write(current = this, compressDuplicateValues = compressDuplicateValues)
+      KeyValueEntryWriter.write(
+        current = this,
+        entryId = PutEntryId,
+        compressDuplicateValues = compressDuplicateValues
+      )
 
     override val hasValueEntryBytes: Boolean =
       previous.exists(_.hasValueEntryBytes) || valueEntryBytes.exists(_.nonEmpty)
@@ -1130,7 +1141,11 @@ private[core] object Transient {
     override val isRange: Boolean = false
 
     val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition): (Slice[Byte], Option[Slice[Byte]], Int, Int) =
-      UpdateEntryWriter.write(current = this, compressDuplicateValues = compressDuplicateValues)
+      KeyValueEntryWriter.write(
+        current = this,
+        entryId = UpdateEntryId,
+        compressDuplicateValues = compressDuplicateValues
+      )
     override val hasValueEntryBytes: Boolean = previous.exists(_.hasValueEntryBytes) || valueEntryBytes.exists(_.nonEmpty)
 
     val stats =
@@ -1234,11 +1249,13 @@ private[core] object Transient {
     override val deadline: Option[Deadline] = None
 
     val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition): (Slice[Byte], Option[Slice[Byte]], Int, Int) =
-      RangeEntryWriter.write(
+      KeyValueEntryWriter.write(
         current = this,
+        entryId = RangeEntryId,
         //It's highly likely that two sequential key-values within the same range have the same value after the range split occurs. So this is always set to true.
         compressDuplicateValues = true
       )
+
     override val hasValueEntryBytes: Boolean = previous.exists(_.hasValueEntryBytes) || valueEntryBytes.exists(_.nonEmpty)
 
     val stats =
@@ -1317,9 +1334,11 @@ private[core] object Transient {
     override val isGroup: Boolean = true
     override val value: Option[Slice[Byte]] = Some(compressedKeyValues)
     val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition): (Slice[Byte], Option[Slice[Byte]], Int, Int) =
-      GroupEntryWriter.write(
+      KeyValueEntryWriter.write(
         current = this,
-        //it's highly unlikely that 2 groups after compression will have duplicate values. compressDuplicateValues check is unnecessary.
+        entryId = GroupEntryId,
+        //it's highly unlikely that 2 groups after compression will have duplicate values.
+        //compressDuplicateValues check is unnecessary since the value bytes of a group can be large.
         compressDuplicateValues = false
       )
     override val hasValueEntryBytes: Boolean = previous.exists(_.hasValueEntryBytes) || valueEntryBytes.exists(_.nonEmpty)

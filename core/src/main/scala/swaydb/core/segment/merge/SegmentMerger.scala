@@ -619,7 +619,7 @@ private[core] object SegmentMerger extends LazyLogging {
             newRangeKeyValue.fetchFromAndRangeValue match {
               //Cases when the Remove range completely overlaps the group and there is no time set for
               //both fromValue & RangeValue then there is no need to open the group. Simply remove the Group.
-              case Success((None | Some(Value.Remove(None)), Value.Remove(None))) if newRangeKeyValue.fromKey <= oldGroupKeyValue.minKey && oldGroupKeyValue.maxKey.maxKey < newRangeKeyValue.toKey =>
+              case Success((None | Some(Value.Remove(None, _)), Value.Remove(None, _))) if newRangeKeyValue.fromKey <= oldGroupKeyValue.minKey && oldGroupKeyValue.maxKey.maxKey < newRangeKeyValue.toKey =>
                 doMerge(newKeyValues, oldKeyValues.dropHead())
 
               case Success(_) =>

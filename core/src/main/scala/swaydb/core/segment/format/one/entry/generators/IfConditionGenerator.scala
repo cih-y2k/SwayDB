@@ -35,15 +35,18 @@ object IfConditionGenerator extends App {
       entryId.getClass.getName.dropRight(1).replaceAll("swaydb.core.segment.format.one.entry.id.", "").replaceAll("\\$", ".")
   }
 
-  def write(ids: List[EntryId]): Unit = {
-    val className = ids.head.getClass.getName.replaceAll("swaydb.core.segment.format.one.entry.id.", "").split("\\$").head.replace("EntryId", "Reader")
+  def write(ids: List[EntryId], appliedFunctionsType: String): Unit = {
+    val className = ids.head.getClass.getName.replaceAll("swaydb.core.segment.format.one.entry.id.", "").split("\\$").head.replace("EntryId", s"${appliedFunctionsType}AppliedFunctionsEntryIdReader")
     val targetIdClass = Paths.get(s"${System.getProperty("user.dir")}/core/src/main/scala/swaydb/core/segment/format/one/entry/reader/matchers/$className.scala")
     val allLines = Files.readAllLines(targetIdClass).asScala
     val writer = new PrintWriter(targetIdClass.toFile)
     val failure = """scala.util.Failure(new Exception(this.getClass.getSimpleName + " - Reader not implemented for id: " + id))"""
 
-    val allNewConditions =
-      ids.sortBy(_.id).grouped(20).zipWithIndex map {
+    val defaultGroupSize = 20
+    val groupSize = if(ids.size < defaultGroupSize * 2) ids.size / 2 else defaultGroupSize
+
+    val allNewConditions: Iterator[String] =
+      ids.sortBy(_.id).grouped(groupSize).zipWithIndex map {
         case (groupedIds, groupIndex) =>
           val innerIfBlock =
             groupedIds.zipWithIndex map {
@@ -71,10 +74,6 @@ object IfConditionGenerator extends App {
 
           if (groupIndex == 0)
             s"\t\t$ifCondition"
-//          else if (groupIndex == groupedIds.size - 1) {
-//            s"""s"\t\telse $ifCondition"
-//               |\t\telse $failure\n""".stripMargin
-//          }
           else
             s"\t\telse $ifCondition"
       }
@@ -92,6 +91,12 @@ object IfConditionGenerator extends App {
   def ids: Seq[List[EntryId]] =
     IdsGenerator.ids.map(_.keyIdsList)
 
-  ids foreach write
+  ids foreach {
+    entries =>
+      val (nonEmpty, empty) = entries.partition(_.getClass.getName.contains("NonEmpty"))
+      write(nonEmpty, "NonEmpty")
+      write(empty, "Empty")
+
+  }
 
 }
