@@ -108,7 +108,8 @@ private[core] object Segment extends LazyLogging {
               keyUnsliced,
               Memory.Remove(
                 key = keyUnsliced,
-                deadline = remove.deadline
+                deadline = remove.deadline,
+                appliedFunctions = remove.appliedFunctions
               )
             )
             bloomFilter.foreach(_ add keyUnsliced)
@@ -125,7 +126,8 @@ private[core] object Segment extends LazyLogging {
                       Memory.Put(
                         key = keyUnsliced,
                         value = Some(value.unslice()),
-                        deadline = put.deadline
+                        deadline = put.deadline,
+                        appliedFunctions = put.appliedFunctions.unslice()
                       )
                     )
 
@@ -135,7 +137,8 @@ private[core] object Segment extends LazyLogging {
                       Memory.Put(
                         key = keyUnsliced,
                         value = None,
-                        deadline = put.deadline
+                        deadline = put.deadline,
+                        appliedFunctions = put.appliedFunctions.unslice()
                       )
                     )
                 }
@@ -154,7 +157,8 @@ private[core] object Segment extends LazyLogging {
                       Memory.Update(
                         key = keyUnsliced,
                         value = Some(value.unslice()),
-                        deadline = update.deadline
+                        deadline = update.deadline,
+                        appliedFunctions = update.appliedFunctions.unslice()
                       )
                     )
 
@@ -164,7 +168,8 @@ private[core] object Segment extends LazyLogging {
                       Memory.Update(
                         key = keyUnsliced,
                         value = None,
-                        deadline = update.deadline
+                        deadline = update.deadline,
+                        appliedFunctions = update.appliedFunctions.unslice()
                       )
                     )
                 }

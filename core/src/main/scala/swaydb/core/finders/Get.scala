@@ -34,7 +34,8 @@ object Get {
 
     def returnRangeValue(current: Value): Try[Option[KeyValue.ReadOnly.Put]] =
       current match {
-        case current @ Value.Remove(currentDeadline) =>
+        case current @ Value.Remove(currentDeadline, appliedFunctions) =>
+          ???
           if (current.hasTimeLeft())
             getFromNextLevel(key) map {
               case Some(next) =>
@@ -49,7 +50,7 @@ object Get {
         case current: Value.Put =>
 
           if (current.hasTimeLeft())
-            Success(Some(Memory.Put(key, current.value, current.deadline)))
+            Success(Some(Memory.Put(key, current.value, current.deadline, current.appliedFunctions)))
           else
             TryUtil.successNone
 
@@ -57,7 +58,7 @@ object Get {
           if (current.hasTimeLeft())
             getFromNextLevel(key) map {
               case Some(next) =>
-                Some(Memory.Put(key, current.value, current.deadline orElse next.deadline))
+                Some(Memory.Put(key, current.value, current.deadline orElse next.deadline, current.appliedFunctions))
 
               case None =>
                 None

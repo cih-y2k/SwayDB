@@ -21,11 +21,11 @@ package swaydb.core.util
 
 import swaydb.core.data.KeyValue
 import swaydb.core.io.reader.Reader
-import swaydb.data.slice.Slice
-import swaydb.data.util.ByteUtil
-
+import swaydb.data.slice.{Reader, Slice}
+import swaydb.data.util.{ByteSizeOf, ByteUtil}
 import scala.util.{Success, Try}
 import PipeOps._
+import scala.collection.mutable.ListBuffer
 
 private[swaydb] object Bytes {
 
@@ -187,6 +187,37 @@ private[swaydb] object Bytes {
           (left, right)
         }
     }
+
+  def sizeOfSeq(bytes: Seq[Slice[Byte]]): Int =
+    bytes.foldLeft(0) {
+      case (size, bytes) =>
+        size + bytes.size + sizeOf(bytes.size)
+    }
+
+  def writeSeq(bytes: Seq[Slice[Byte]]): Slice[Byte] =
+    bytes
+      .foldLeft(Slice.create[Byte](sizeOfSeq(bytes))) {
+        case (result, bytes) =>
+          result
+            .addIntUnsigned(bytes.size)
+            .addAll(bytes)
+      }
+
+  def readSeq(bytes: Slice[Byte]): Try[ListBuffer[Slice[Byte]]] =
+    readSeq(Reader(bytes))
+
+  def readSeq(reader: Reader): Try[ListBuffer[Slice[Byte]]] =
+    reader.foldLeftTry(ListBuffer.empty[Slice[Byte]]) {
+      case (result, reader) =>
+        reader.readIntUnsigned() flatMap {
+          size =>
+            reader.read(size) map {
+              bytes =>
+                result += bytes
+            }
+        }
+    }
+
 }
 
 object Test extends App {

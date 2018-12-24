@@ -37,23 +37,28 @@ object UpdateReader {
                                                          deadlineReader: DeadlineReader[T],
                                                          valueOffsetReader: ValueOffsetReader[T],
                                                          valueLengthReader: ValueLengthReader[T],
-                                                         valueBytesReader: ValueReader[T]): Try[Persistent.Update] =
+                                                         valueBytesReader: ValueReader[T],
+                                                         appliedFunctionsReader: AppliedFunctionsReader[T]): Try[Persistent.Update] =
     deadlineReader.read(indexReader, previous) flatMap {
       deadline =>
         valueBytesReader.read(indexReader, previous) flatMap {
           valueOffsetAndLength =>
-            keyReader.read(indexReader, previous) map {
-              key =>
-                Persistent.Update(
-                  _key = key,
-                  deadline = deadline,
-                  valueReader = valueReader,
-                  nextIndexOffset = nextIndexOffset,
-                  nextIndexSize = nextIndexSize,
-                  indexOffset = indexOffset,
-                  valueOffset = valueOffsetAndLength.map(_._1).getOrElse(-1),
-                  valueLength = valueOffsetAndLength.map(_._2).getOrElse(0)
-                )
+            appliedFunctionsReader.read(indexReader, previous) flatMap {
+              appliedFunctions =>
+                keyReader.read(indexReader, previous) map {
+                  key =>
+                    Persistent.Update(
+                      _key = key,
+                      deadline = deadline,
+                      valueReader = valueReader,
+                      nextIndexOffset = nextIndexOffset,
+                      nextIndexSize = nextIndexSize,
+                      indexOffset = indexOffset,
+                      valueOffset = valueOffsetAndLength.map(_._1).getOrElse(-1),
+                      valueLength = valueOffsetAndLength.map(_._2).getOrElse(0),
+                      appliedFunctions = appliedFunctions
+                    )
+                }
             }
         }
     }

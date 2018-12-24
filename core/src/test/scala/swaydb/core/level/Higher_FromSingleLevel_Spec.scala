@@ -80,7 +80,7 @@ sealed trait Higher_FromSingleLevel_Spec extends TestBase with MockFactory with 
       //deadline or no deadline. A single Remove key-value with always return empty
       runThis(10.times) {
         assertOnLevel(
-          keyValues = Slice(Memory.Remove(randomIntMax(10), randomDeadlineOption)),
+          keyValues = Slice(Memory.Remove(randomIntMax(10), randomDeadlineOption, Slice.emptySeqBytes)),
           assertion =
             level =>
               (0 to 10) foreach {

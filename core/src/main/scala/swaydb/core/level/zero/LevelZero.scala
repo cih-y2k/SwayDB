@@ -211,7 +211,7 @@ private[core] class LevelZero(val path: Path,
           Failure(new Exception("fromKey should be less than toKey"))
         else
           maps.write {
-            (MapEntry.Put[Slice[Byte], Memory.Range](fromKey, Memory.Range(fromKey, to, None, Value.Update(value, None))): MapEntry[Slice[Byte], Memory.SegmentResponse]) ++
+            (MapEntry.Put[Slice[Byte], Memory.Range](fromKey, Memory.Range(fromKey, to, None, Value.Update(value, None, Slice.emptySeqBytes))): MapEntry[Slice[Byte], Memory.SegmentResponse]) ++
               MapEntry.Put[Slice[Byte], Memory.Update](to, Memory.Update(to, value))
           }
       }

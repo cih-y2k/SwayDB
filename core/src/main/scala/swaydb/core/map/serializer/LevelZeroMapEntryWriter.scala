@@ -21,6 +21,7 @@ package swaydb.core.map.serializer
 
 import swaydb.core.data.Memory
 import swaydb.core.map.MapEntry
+import swaydb.core.util.Bytes
 import swaydb.data.slice.Slice
 import swaydb.data.util.ByteSizeOf
 
@@ -35,12 +36,16 @@ object LevelZeroMapEntryWriter {
     override def write(entry: MapEntry.Put[Slice[Byte], Memory.Remove], bytes: Slice[Byte]): Unit =
       bytes
         .addInt(id)
+        .addInt(entry.value.appliedFunctions.size)
+        .addAll(Bytes.writeSeq(entry.value.appliedFunctions))
         .addInt(entry.value.key.size)
         .addAll(entry.value.key)
         .addLong(entry.value.deadline.map(_.time.toNanos).getOrElse(0))
 
     override def bytesRequired(entry: MapEntry.Put[Slice[Byte], Memory.Remove]): Int =
       ByteSizeOf.int +
+        ByteSizeOf.int +
+        Bytes.sizeOfSeq(entry.value.appliedFunctions) +
         ByteSizeOf.int +
         entry.value.key.size +
         ByteSizeOf.long
@@ -55,6 +60,8 @@ object LevelZeroMapEntryWriter {
     override def write(entry: MapEntry.Put[Slice[Byte], Memory.Put], bytes: Slice[Byte]): Unit =
       bytes
         .addInt(id)
+        .addInt(entry.value.appliedFunctions.size)
+        .addAll(Bytes.writeSeq(entry.value.appliedFunctions))
         .addInt(entry.value.key.size)
         .addAll(entry.value.key)
         .addInt(entry.value.value.map(_.size).getOrElse(0))
@@ -66,6 +73,8 @@ object LevelZeroMapEntryWriter {
         0
       else
         ByteSizeOf.int +
+          ByteSizeOf.int +
+          Bytes.sizeOfSeq(entry.value.appliedFunctions) +
           ByteSizeOf.int +
           entry.value.key.size +
           ByteSizeOf.int +
@@ -82,6 +91,8 @@ object LevelZeroMapEntryWriter {
     override def write(entry: MapEntry.Put[Slice[Byte], Memory.Update], bytes: Slice[Byte]): Unit =
       bytes
         .addInt(id)
+        .addInt(entry.value.appliedFunctions.size)
+        .addAll(Bytes.writeSeq(entry.value.appliedFunctions))
         .addInt(entry.value.key.size)
         .addAll(entry.value.key)
         .addInt(entry.value.value.map(_.size).getOrElse(0))
@@ -93,6 +104,8 @@ object LevelZeroMapEntryWriter {
         0
       else
         ByteSizeOf.int +
+          ByteSizeOf.int +
+          Bytes.sizeOfSeq(entry.value.appliedFunctions) +
           ByteSizeOf.int +
           entry.value.key.size +
           ByteSizeOf.int +

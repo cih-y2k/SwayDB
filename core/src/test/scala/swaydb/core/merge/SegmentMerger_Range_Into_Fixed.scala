@@ -47,10 +47,10 @@ class SegmentMerger_Range_Into_Fixed extends WordSpec with CommonAssertions {
           val (expectedKeyValue: Memory.Range, expectedLastKeyValue: Option[Memory.Fixed]) =
             newKeyValue.fetchFromAndRangeValue.assertGet match {
               //if the input range is a remove range, old key-values get dropped instead of doing a split.
-              case (None | Some(Value.Remove(None)), Value.Remove(None)) =>
+              case (None | Some(Value.Remove(None, _)), Value.Remove(None, _)) =>
                 (newKeyValue, None)
 
-              case (Some(Value.Put(value, deadline)), Value.Remove(None)) =>
+              case (Some(Value.Put(value, deadline, _)), Value.Remove(None, _)) =>
                 if (deadline.forall(_.hasTimeLeft()))
                   (newKeyValue, Some(Memory.Put(newKeyValue.key, value, deadline)))
                 else
@@ -94,7 +94,7 @@ class SegmentMerger_Range_Into_Fixed extends WordSpec with CommonAssertions {
           val expectedFromValue = KeyValueMerger.applyValue(newKeyValue.rangeValue, oldKeyValue, atLeastTimeLeft).assertGet
           val expectedKeyValue =
             newKeyValue.rangeValue match {
-              case Remove(None) =>
+              case Remove(None, _) =>
                 Slice(newKeyValue)
               case _ =>
                 Slice(

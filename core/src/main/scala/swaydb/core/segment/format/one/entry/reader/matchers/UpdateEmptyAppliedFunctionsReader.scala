@@ -24,6 +24,7 @@ import swaydb.core.segment.format.one.entry.reader.DeadlineReaders._
 import swaydb.core.segment.format.one.entry.reader.KeyReaders._
 import swaydb.core.segment.format.one.entry.reader.ValueReader._
 import swaydb.core.segment.format.one.entry.reader.matchers.UpdateReader._
+import swaydb.core.segment.format.one.entry.reader.AppliedFunctionsReaders._
 import swaydb.data.slice.Reader
 import scala.util.Try
 import swaydb.core.segment.format.one.entry.id.UpdateEmptyAppliedFunctionsEntryId

@@ -87,6 +87,8 @@ private[core] object KeyValue {
       def hasTimeLeftAtLeast(minus: FiniteDuration): Boolean
 
       def updateDeadline(deadline: Deadline): Fixed
+
+      def appliedFunctions: Seq[Slice[Byte]]
     }
 
     implicit class ReadOnlyFixedImplicit(overwrite: KeyValue.ReadOnly.Fixed) {
@@ -96,16 +98,16 @@ private[core] object KeyValue {
             Success(Value.Remove(overwrite.deadline))
 
           case put: Memory.Put =>
-            Success(Value.Put(put.value, put.deadline))
+            Success(Value.Put(put.value, put.deadline, put.appliedFunctions))
 
           case put: Persistent.Put =>
-            put.getOrFetchValue.map(Value.Put(_, put.deadline))
+            put.getOrFetchValue.map(Value.Put(_, put.deadline, put.appliedFunctions))
 
-          case put: Memory.Update =>
-            Success(Value.Update(put.value, put.deadline))
+          case update: Memory.Update =>
+            Success(Value.Update(update.value, update.deadline, update.appliedFunctions))
 
           case update: Persistent.Update =>
-            update.getOrFetchValue.map(Value.Update(_, update.deadline))
+            update.getOrFetchValue.map(Value.Update(_, update.deadline, update.appliedFunctions))
         }
 
       def toRangeValue: Try[Value.RangeValue] =
@@ -114,16 +116,16 @@ private[core] object KeyValue {
             Success(Value.Remove(overwrite.deadline))
 
           case put: Memory.Put =>
-            Success(Value.Update(put.value, put.deadline))
+            Success(Value.Update(put.value, put.deadline, put.appliedFunctions))
 
           case put: Persistent.Put =>
-            put.getOrFetchValue.map(Value.Update(_, put.deadline))
+            put.getOrFetchValue.map(Value.Update(_, put.deadline, put.appliedFunctions))
 
-          case put: Memory.Update =>
-            Success(Value.Update(put.value, put.deadline))
+          case update: Memory.Update =>
+            Success(Value.Update(update.value, update.deadline, update.appliedFunctions))
 
           case update: Persistent.Update =>
-            update.getOrFetchValue.map(Value.Update(_, update.deadline))
+            update.getOrFetchValue.map(Value.Update(_, update.deadline, update.appliedFunctions))
         }
     }
 
@@ -275,6 +277,8 @@ private[core] object KeyValue {
 
       def isOverdue(): Boolean =
         !hasTimeLeft()
+
+      def appliedFunctions: Seq[Slice[Byte]]
     }
 
     sealed trait Range extends KeyValue.WriteOnly {
@@ -326,9 +330,9 @@ private[swaydb] object Memory {
     def toFromValue: Value.FromValue =
       memory match {
         case put: Put =>
-          Value.Put(put.value, put.deadline)
+          Value.Put(put.value, put.deadline, put.appliedFunctions)
         case update: Update =>
-          Value.Update(update.value, update.deadline)
+          Value.Update(update.value, update.deadline, update.appliedFunctions)
         case remove: Remove =>
           Value.Remove(remove.deadline)
 
@@ -337,9 +341,9 @@ private[swaydb] object Memory {
     def toRangeValue: Value.RangeValue =
       memory match {
         case put: Put =>
-          Value.Update(put.value, put.deadline)
+          Value.Update(put.value, put.deadline, put.appliedFunctions)
         case update: Update =>
-          Value.Update(update.value, update.deadline)
+          Value.Update(update.value, update.deadline, update.appliedFunctions)
         case remove: Remove =>
           Value.Remove(remove.deadline)
       }
@@ -350,39 +354,45 @@ private[swaydb] object Memory {
   object Put {
     def apply(key: Slice[Byte],
               value: Slice[Byte]): Put =
-      new Put(key, Some(value), None)
+      new Put(key, Some(value), None, Slice.emptySeqBytes)
 
     def apply(key: Slice[Byte],
               value: Slice[Byte],
               removeAt: Deadline): Put =
-      new Put(key, Some(value), Some(removeAt))
+      new Put(key, Some(value), Some(removeAt), Slice.emptySeqBytes)
 
     def apply(key: Slice[Byte],
               value: Option[Slice[Byte]],
               removeAt: Deadline): Put =
-      new Put(key, value, Some(removeAt))
+      new Put(key, value, Some(removeAt), Slice.emptySeqBytes)
 
     def apply(key: Slice[Byte],
               value: Slice[Byte],
               removeAt: Option[Deadline]): Put =
-      new Put(key, Some(value), removeAt)
+      new Put(key, Some(value), removeAt, Slice.emptySeqBytes)
+
+    def apply(key: Slice[Byte],
+              value: Option[Slice[Byte]],
+              removeAt: Option[Deadline]): Put =
+      new Put(key, value, removeAt, Slice.emptySeqBytes)
 
     def apply(key: Slice[Byte],
               value: Slice[Byte],
               removeAfter: FiniteDuration): Put =
-      new Put(key, Some(value), Some(removeAfter.fromNow))
+      new Put(key, Some(value), Some(removeAfter.fromNow), Slice.emptySeqBytes)
 
     def apply(key: Slice[Byte],
               value: Option[Slice[Byte]]): Put =
-      new Put(key, value, None)
+      new Put(key, value, None, Slice.emptySeqBytes)
 
     def apply(key: Slice[Byte]): Put =
-      new Put(key, None, None)
+      new Put(key, None, None, Slice.emptySeqBytes)
   }
 
   case class Put(key: Slice[Byte],
                  value: Option[Slice[Byte]],
-                 deadline: Option[Deadline]) extends Memory.Fixed with KeyValue.ReadOnly.Put {
+                 deadline: Option[Deadline],
+                 appliedFunctions: Seq[Slice[Byte]]) extends Memory.Fixed with KeyValue.ReadOnly.Put {
 
     override def getOrFetchValue: Try[Option[Slice[Byte]]] =
       Success(value)
@@ -404,39 +414,45 @@ private[swaydb] object Memory {
   object Update {
     def apply(key: Slice[Byte],
               value: Slice[Byte]): Update =
-      new Update(key, Some(value), None)
+      new Update(key, Some(value), None, Slice.emptySeqBytes)
 
     def apply(key: Slice[Byte],
               value: Slice[Byte],
               removeAt: Deadline): Update =
-      new Update(key, Some(value), Some(removeAt))
+      new Update(key, Some(value), Some(removeAt), Slice.emptySeqBytes)
 
     def apply(key: Slice[Byte],
               value: Slice[Byte],
               removeAt: Option[Deadline]): Update =
-      new Update(key, Some(value), removeAt)
+      new Update(key, Some(value), removeAt, Slice.emptySeqBytes)
+
+    def apply(key: Slice[Byte],
+              value: Option[Slice[Byte]],
+              removeAt: Option[Deadline]): Update =
+      new Update(key, value, removeAt, Slice.emptySeqBytes)
 
     def apply(key: Slice[Byte],
               value: Slice[Byte],
               removeAfter: FiniteDuration): Update =
-      new Update(key, Some(value), Some(removeAfter.fromNow))
+      new Update(key, Some(value), Some(removeAfter.fromNow), Slice.emptySeqBytes)
 
     def apply(key: Slice[Byte],
               value: Option[Slice[Byte]]): Update =
-      new Update(key, value, None)
+      new Update(key, value, None, Slice.emptySeqBytes)
 
     def apply(key: Slice[Byte],
               value: Option[Slice[Byte]],
               deadline: Deadline): Update =
-      new Update(key, value, Some(deadline))
+      new Update(key, value, Some(deadline), Slice.emptySeqBytes)
 
     def apply(key: Slice[Byte]): Update =
-      new Update(key, None, None)
+      new Update(key, None, None, Slice.emptySeqBytes)
   }
 
   case class Update(key: Slice[Byte],
                     value: Option[Slice[Byte]],
-                    deadline: Option[Deadline]) extends KeyValue.ReadOnly.Update with Memory.Fixed {
+                    deadline: Option[Deadline],
+                    appliedFunctions: Seq[Slice[Byte]]) extends KeyValue.ReadOnly.Update with Memory.Fixed {
 
     override def getOrFetchValue: Try[Option[Slice[Byte]]] =
       Success(value)
@@ -451,7 +467,7 @@ private[swaydb] object Memory {
       deadline.forall(deadline => (deadline - minus).hasTimeLeft())
 
     override def toPut(): Memory.Put =
-      Memory.Put(key, value, deadline)
+      Memory.Put(key, value, deadline, appliedFunctions)
 
     override def toPut(deadline: Deadline): Memory.Put =
       Memory.Put(key, value, deadline)
@@ -459,17 +475,21 @@ private[swaydb] object Memory {
 
   object Remove {
     def apply(key: Slice[Byte]): Remove =
-      new Remove(key, None)
+      new Remove(key, None, Slice.emptySeqBytes)
 
     def apply(key: Slice[Byte], deadline: Deadline): Remove =
-      new Remove(key, Some(deadline))
+      new Remove(key, Some(deadline), Slice.emptySeqBytes)
+
+    def apply(key: Slice[Byte], deadline: Option[Deadline]): Remove =
+      new Remove(key, deadline, Slice.emptySeqBytes)
 
     def apply(key: Slice[Byte], deadline: FiniteDuration): Remove =
-      new Remove(key, Some(deadline.fromNow))
+      new Remove(key, Some(deadline.fromNow), Slice.emptySeqBytes)
   }
 
   case class Remove(key: Slice[Byte],
-                    deadline: Option[Deadline]) extends Memory.Fixed with KeyValue.ReadOnly.Remove {
+                    deadline: Option[Deadline],
+                    appliedFunctions: Seq[Slice[Byte]]) extends Memory.Fixed with KeyValue.ReadOnly.Remove {
 
     override def updateDeadline(deadline: Deadline): Remove =
       copy(deadline = Some(deadline))
@@ -586,16 +606,16 @@ private[core] object Transient {
         case put: Transient.Put =>
           put.getOrFetchValue map {
             value =>
-              Memory.Put(put.key, value, put.deadline)
+              Memory.Put(put.key, value, put.deadline, put.appliedFunctions)
           }
 
         case remove: Transient.Remove =>
-          Success(Memory.Remove(remove.key, remove.deadline))
+          Success(Memory.Remove(remove.key, remove.deadline, remove.appliedFunctions))
 
         case update: Transient.Update =>
           update.getOrFetchValue map {
             value =>
-              Memory.Update(update.key, value, update.deadline)
+              Memory.Update(update.key, value, update.deadline, update.appliedFunctions)
           }
 
         case range: Transient.Range =>
@@ -621,16 +641,16 @@ private[core] object Transient {
         case put: Transient.Put =>
           put.getOrFetchValue map {
             value =>
-              Memory.Put(put.key, value, put.deadline)
+              Memory.Put(put.key, value, put.deadline, put.appliedFunctions)
           }
 
         case remove: Transient.Remove =>
-          Success(Memory.Remove(remove.key, remove.deadline))
+          Success(Memory.Remove(remove.key, remove.deadline, remove.appliedFunctions))
 
         case update: Transient.Update =>
           update.getOrFetchValue map {
             value =>
-              Memory.Update(update.key, value, update.deadline)
+              Memory.Update(update.key, value, update.deadline, update.appliedFunctions)
           }
 
         case range: Transient.Range =>
@@ -652,7 +672,8 @@ private[core] object Transient {
         key = key,
         falsePositiveRate = 0.1,
         previous = None,
-        deadline = None
+        deadline = None,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -662,7 +683,8 @@ private[core] object Transient {
         key = key,
         falsePositiveRate = falsePositiveRate,
         previous = None,
-        deadline = Some(removeAfter.fromNow)
+        deadline = Some(removeAfter.fromNow),
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -671,7 +693,8 @@ private[core] object Transient {
         key = key,
         falsePositiveRate = falsePositiveRate,
         previous = None,
-        deadline = None
+        deadline = None,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -681,7 +704,8 @@ private[core] object Transient {
         key = key,
         falsePositiveRate = falsePositiveRate,
         previous = previous,
-        deadline = None
+        deadline = None,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -692,14 +716,16 @@ private[core] object Transient {
         key = key,
         deadline = deadline,
         previous = previous,
-        falsePositiveRate = falsePositiveRate
+        falsePositiveRate = falsePositiveRate,
+        appliedFunctions = Slice.emptySeqBytes
       )
   }
 
   case class Remove(key: Slice[Byte],
                     deadline: Option[Deadline],
                     previous: Option[KeyValue.WriteOnly],
-                    falsePositiveRate: Double) extends Transient with KeyValue.WriteOnly.Fixed {
+                    falsePositiveRate: Double,
+                    appliedFunctions: Seq[Slice[Byte]]) extends Transient with KeyValue.WriteOnly.Fixed {
     override val hasRemove: Boolean = true
     override val isRange: Boolean = false
     override val isGroup: Boolean = false
@@ -742,7 +768,8 @@ private[core] object Transient {
         deadline = None,
         previous = previousMayBe,
         falsePositiveRate = falsePositiveRate,
-        compressDuplicateValues = true
+        compressDuplicateValues = true,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -757,7 +784,8 @@ private[core] object Transient {
         deadline = deadline,
         previous = previousMayBe,
         falsePositiveRate = falsePositiveRate,
-        compressDuplicateValues = compressDuplicateValues
+        compressDuplicateValues = compressDuplicateValues,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte]): Put =
@@ -767,7 +795,8 @@ private[core] object Transient {
         deadline = None,
         previous = None,
         falsePositiveRate = 0.1,
-        compressDuplicateValues = true
+        compressDuplicateValues = true,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -778,7 +807,8 @@ private[core] object Transient {
         deadline = None,
         previous = None,
         falsePositiveRate = 0.1,
-        compressDuplicateValues = true
+        compressDuplicateValues = true,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -790,7 +820,8 @@ private[core] object Transient {
         deadline = Some(removeAfter.fromNow),
         previous = None,
         falsePositiveRate = 0.1,
-        compressDuplicateValues = true
+        compressDuplicateValues = true,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -802,7 +833,8 @@ private[core] object Transient {
         deadline = Some(deadline),
         previous = None,
         falsePositiveRate = 0.1,
-        compressDuplicateValues = true
+        compressDuplicateValues = true,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -813,7 +845,8 @@ private[core] object Transient {
         deadline = Some(removeAfter.fromNow),
         previous = None,
         falsePositiveRate = 0.1,
-        compressDuplicateValues = true
+        compressDuplicateValues = true,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -825,7 +858,8 @@ private[core] object Transient {
         deadline = removeAfter.map(_.fromNow),
         previous = None,
         falsePositiveRate = 0.1,
-        compressDuplicateValues = true
+        compressDuplicateValues = true,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -837,7 +871,8 @@ private[core] object Transient {
         deadline = None,
         previous = None,
         falsePositiveRate = falsePositiveRate,
-        compressDuplicateValues = true
+        compressDuplicateValues = true,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -860,7 +895,8 @@ private[core] object Transient {
         deadline = deadline,
         previous = previous,
         falsePositiveRate = 0.1,
-        compressDuplicateValues = compressDuplicateValues
+        compressDuplicateValues = compressDuplicateValues,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -874,7 +910,8 @@ private[core] object Transient {
         deadline = None,
         previous = previous,
         falsePositiveRate = falsePositiveRate,
-        compressDuplicateValues = compressDuplicateValues
+        compressDuplicateValues = compressDuplicateValues,
+        appliedFunctions = Slice.emptySeqBytes
       )
   }
 
@@ -883,7 +920,8 @@ private[core] object Transient {
                  deadline: Option[Deadline],
                  previous: Option[KeyValue.WriteOnly],
                  falsePositiveRate: Double,
-                 compressDuplicateValues: Boolean) extends Transient with KeyValue.WriteOnly.Fixed {
+                 compressDuplicateValues: Boolean,
+                 appliedFunctions: Seq[Slice[Byte]]) extends Transient with KeyValue.WriteOnly.Fixed {
 
     override val hasRemove: Boolean = previous.exists(_.hasRemove)
     override val isRemoveRange = false
@@ -932,7 +970,8 @@ private[core] object Transient {
         deadline = None,
         previous = previousMayBe,
         falsePositiveRate = falsePositiveRate,
-        compressDuplicateValues = true
+        compressDuplicateValues = true,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -947,7 +986,8 @@ private[core] object Transient {
         deadline = deadline,
         previous = previousMayBe,
         falsePositiveRate = falsePositiveRate,
-        compressDuplicateValues = compressDuplicateValues
+        compressDuplicateValues = compressDuplicateValues,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte]): Update =
@@ -957,7 +997,8 @@ private[core] object Transient {
         deadline = None,
         previous = None,
         falsePositiveRate = 0.1,
-        compressDuplicateValues = true
+        compressDuplicateValues = true,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -968,7 +1009,8 @@ private[core] object Transient {
         deadline = None,
         previous = None,
         falsePositiveRate = 0.1,
-        compressDuplicateValues = true
+        compressDuplicateValues = true,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -980,7 +1022,8 @@ private[core] object Transient {
         deadline = Some(removeAfter.fromNow),
         previous = None,
         falsePositiveRate = 0.1,
-        compressDuplicateValues = true
+        compressDuplicateValues = true,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -992,7 +1035,8 @@ private[core] object Transient {
         deadline = Some(deadline),
         previous = None,
         falsePositiveRate = 0.1,
-        compressDuplicateValues = true
+        compressDuplicateValues = true,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -1003,7 +1047,8 @@ private[core] object Transient {
         deadline = Some(removeAfter.fromNow),
         previous = None,
         falsePositiveRate = 0.1,
-        compressDuplicateValues = true
+        compressDuplicateValues = true,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -1015,7 +1060,8 @@ private[core] object Transient {
         deadline = removeAfter.map(_.fromNow),
         previous = None,
         falsePositiveRate = 0.1,
-        compressDuplicateValues = true
+        compressDuplicateValues = true,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -1027,7 +1073,8 @@ private[core] object Transient {
         deadline = None,
         previous = None,
         falsePositiveRate = falsePositiveRate,
-        compressDuplicateValues = true
+        compressDuplicateValues = true,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -1050,7 +1097,8 @@ private[core] object Transient {
         deadline = deadline,
         previous = previous,
         falsePositiveRate = 0.1,
-        compressDuplicateValues = compressDuplicateValues
+        compressDuplicateValues = compressDuplicateValues,
+        appliedFunctions = Slice.emptySeqBytes
       )
 
     def apply(key: Slice[Byte],
@@ -1064,7 +1112,8 @@ private[core] object Transient {
         deadline = None,
         previous = previous,
         falsePositiveRate = falsePositiveRate,
-        compressDuplicateValues = compressDuplicateValues
+        compressDuplicateValues = compressDuplicateValues,
+        appliedFunctions = Slice.emptySeqBytes
       )
   }
 
@@ -1073,7 +1122,8 @@ private[core] object Transient {
                     deadline: Option[Deadline],
                     previous: Option[KeyValue.WriteOnly],
                     falsePositiveRate: Double,
-                    compressDuplicateValues: Boolean) extends Transient with KeyValue.WriteOnly.Fixed {
+                    compressDuplicateValues: Boolean,
+                    appliedFunctions: Seq[Slice[Byte]]) extends Transient with KeyValue.WriteOnly.Fixed {
     override val hasRemove: Boolean = previous.exists(_.hasRemove)
     override val isRemoveRange = false
     override val isGroup: Boolean = false
@@ -1332,7 +1382,8 @@ private[core] object Persistent {
               Try {
                 Memory.Remove(
                   key = remove.key,
-                  deadline = remove.deadline
+                  deadline = remove.deadline,
+                  appliedFunctions = remove.appliedFunctions
                 )
               }
             case put: Persistent.Put =>
@@ -1341,7 +1392,8 @@ private[core] object Persistent {
                   Memory.Put(
                     key = put.key,
                     value = value,
-                    deadline = put.deadline
+                    deadline = put.deadline,
+                    appliedFunctions = put.appliedFunctions
                   )
               }
 
@@ -1351,7 +1403,8 @@ private[core] object Persistent {
                   Memory.Update(
                     key = update.key,
                     value = value,
-                    deadline = update.deadline
+                    deadline = update.deadline,
+                    appliedFunctions = update.appliedFunctions
                   )
               }
           }
@@ -1376,7 +1429,8 @@ private[core] object Persistent {
                     deadline: Option[Deadline],
                     indexOffset: Int,
                     nextIndexOffset: Int,
-                    nextIndexSize: Int) extends Persistent.Fixed with KeyValue.ReadOnly.Remove {
+                    nextIndexSize: Int,
+                    appliedFunctions: Seq[Slice[Byte]]) extends Persistent.Fixed with KeyValue.ReadOnly.Remove {
     override val valueLength: Int = 0
     override val isValueDefined: Boolean = true
     override val getOrFetchValue: Try[Option[Slice[Byte]]] = TryUtil.successNone
@@ -1405,7 +1459,8 @@ private[core] object Persistent {
                  nextIndexSize: Int,
                  indexOffset: Int,
                  valueOffset: Int,
-                 valueLength: Int) extends Persistent.Fixed with LazyValue with KeyValue.ReadOnly.Put {
+                 valueLength: Int,
+                 appliedFunctions: Seq[Slice[Byte]]) extends Persistent.Fixed with LazyValue with KeyValue.ReadOnly.Put {
     override def unsliceKey: Unit =
       _key = _key.unslice()
 
@@ -1429,7 +1484,8 @@ private[core] object Persistent {
                     nextIndexSize: Int,
                     indexOffset: Int,
                     valueOffset: Int,
-                    valueLength: Int) extends Persistent.Fixed with LazyValue with KeyValue.ReadOnly.Update {
+                    valueLength: Int,
+                    appliedFunctions: Seq[Slice[Byte]]) extends Persistent.Fixed with LazyValue with KeyValue.ReadOnly.Update {
     override def unsliceKey: Unit =
       _key = _key.unslice()
 
@@ -1454,7 +1510,8 @@ private[core] object Persistent {
         nextIndexSize = nextIndexSize,
         indexOffset = indexOffset,
         valueOffset = valueOffset,
-        valueLength = valueLength
+        valueLength = valueLength,
+        appliedFunctions = appliedFunctions
       )
 
     override def toPut(deadline: Deadline): Persistent.Put =
@@ -1466,7 +1523,8 @@ private[core] object Persistent {
         nextIndexSize = nextIndexSize,
         indexOffset = indexOffset,
         valueOffset = valueOffset,
-        valueLength = valueLength
+        valueLength = valueLength,
+        appliedFunctions = appliedFunctions
       )
   }
 

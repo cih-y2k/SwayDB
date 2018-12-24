@@ -33,18 +33,23 @@ object RemoveReader {
                            nextIndexOffset: Int,
                            nextIndexSize: Int,
                            previous: Option[Persistent])(implicit keyReader: KeyReader[T],
-                                                         deadlineReader: DeadlineReader[T]): Try[Persistent.Remove] =
+                                                         deadlineReader: DeadlineReader[T],
+                                                         appliedFunctionsReader: AppliedFunctionsReader[T]): Try[Persistent.Remove] =
     deadlineReader.read(indexReader, previous) flatMap {
       deadline =>
-        keyReader.read(indexReader, previous) map {
-          key =>
-            Persistent.Remove(
-              _key = key,
-              indexOffset = indexOffset,
-              nextIndexOffset = nextIndexOffset,
-              nextIndexSize = nextIndexSize,
-              deadline = deadline
-            )
+        appliedFunctionsReader.read(indexReader, previous) flatMap {
+          appliedFunctions =>
+            keyReader.read(indexReader, previous) map {
+              key =>
+                Persistent.Remove(
+                  _key = key,
+                  indexOffset = indexOffset,
+                  nextIndexOffset = nextIndexOffset,
+                  nextIndexSize = nextIndexSize,
+                  deadline = deadline,
+                  appliedFunctions = appliedFunctions
+                )
+            }
         }
 
     }

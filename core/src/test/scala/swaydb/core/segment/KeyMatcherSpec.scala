@@ -48,7 +48,7 @@ class KeyMatcherSpec extends TestBase {
     */
 
   implicit def toPut(int: Int): Put =
-    Put(int, None, Reader(Slice.emptyBytes), 0, 0, 0, 0, 0)
+    Put(int, None, Reader(Slice.emptyBytes), 0, 0, 0, 0, 0, Slice.emptySeqBytes)
 
   implicit def toSomePut(int: Int): Option[Put] =
     Some(int)

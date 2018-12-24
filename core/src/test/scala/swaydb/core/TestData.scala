@@ -61,7 +61,7 @@ trait TestData extends TryAssert {
 
   def randomRemoveKeyValue(key: Slice[Byte],
                            deadline: Option[Deadline] = randomDeadlineOption): Memory.Remove =
-    Memory.Remove(key, deadline)
+    Memory.Remove(key, deadline, Slice.emptySeqBytes)
 
   def randomFixedKeyValue(key: Slice[Byte],
                           value: Option[Slice[Byte]] = randomStringOption,
@@ -69,7 +69,7 @@ trait TestData extends TryAssert {
     if (Random.nextBoolean())
       Memory.Put(key, value, deadline)
     else if (Random.nextBoolean())
-      Memory.Remove(key, deadline)
+      Memory.Remove(key, deadline, Slice.emptySeqBytes)
     else
       Memory.Update(key, value, deadline)
 
@@ -102,7 +102,7 @@ trait TestData extends TryAssert {
 
   def randomFromValue(): Value.FromValue =
     if (Random.nextBoolean())
-      Value.Put(randomStringOption, randomDeadlineOption)
+      Value.Put(randomStringOption, randomDeadlineOption, Slice.emptySeqBytes)
     else if (Random.nextBoolean())
       Value.Remove(randomDeadlineOption)
     else
@@ -302,7 +302,8 @@ trait TestData extends TryAssert {
           falsePositiveRate = 0.1,
           previous = slice.lastOption,
           compressDuplicateValues = true,
-          deadline = if (addRandomPutDeadlines && Random.nextBoolean()) Some(10.seconds.fromNow) else None
+          deadline = if (addRandomPutDeadlines && Random.nextBoolean()) Some(10.seconds.fromNow) else None,
+          appliedFunctions = Slice.emptySeqBytes
         )
         key = key + 1
       }

@@ -390,7 +390,7 @@ private[merge] object SegmentGrouper extends LazyLogging {
             TryUtil.successUnit
           else
             fixed match {
-              case Memory.Put(key, value, deadline) =>
+              case Memory.Put(key, value, deadline, appliedFunctions) =>
                 doAdd(
                   Transient.Put(
                     key = key,
@@ -398,7 +398,8 @@ private[merge] object SegmentGrouper extends LazyLogging {
                     deadline = deadline,
                     _,
                     falsePositiveRate = bloomFilterFalsePositiveRate,
-                    compressDuplicateValues = compressDuplicateValues
+                    compressDuplicateValues = compressDuplicateValues,
+                    appliedFunctions = appliedFunctions
                   )
                 )
 
@@ -412,7 +413,8 @@ private[merge] object SegmentGrouper extends LazyLogging {
                         deadline = put.deadline,
                         _,
                         falsePositiveRate = bloomFilterFalsePositiveRate,
-                        compressDuplicateValues = compressDuplicateValues
+                        compressDuplicateValues = compressDuplicateValues,
+                        appliedFunctions = put.appliedFunctions
                       )
                     )
                 }
@@ -424,13 +426,14 @@ private[merge] object SegmentGrouper extends LazyLogging {
                       key = keyValueToAdd.key,
                       deadline = remove.deadline,
                       _,
-                      falsePositiveRate = bloomFilterFalsePositiveRate
+                      falsePositiveRate = bloomFilterFalsePositiveRate,
+                      appliedFunctions = remove.appliedFunctions
                     )
                   )
                 else
                   TryUtil.successUnit
 
-              case Memory.Update(key, value, deadline) =>
+              case Memory.Update(key, value, deadline, appliedFunctions) =>
                 if (!isLastLevel)
                   doAdd(
                     Transient.Update(
@@ -439,7 +442,8 @@ private[merge] object SegmentGrouper extends LazyLogging {
                       deadline = deadline,
                       _,
                       falsePositiveRate = bloomFilterFalsePositiveRate,
-                      compressDuplicateValues = compressDuplicateValues
+                      compressDuplicateValues = compressDuplicateValues,
+                      appliedFunctions = appliedFunctions
                     )
                   )
                 else
@@ -456,7 +460,8 @@ private[merge] object SegmentGrouper extends LazyLogging {
                           deadline = update.deadline,
                           _,
                           falsePositiveRate = bloomFilterFalsePositiveRate,
-                          compressDuplicateValues = compressDuplicateValues
+                          compressDuplicateValues = compressDuplicateValues,
+                          appliedFunctions = update.appliedFunctions
                         )
                       )
                   }
@@ -471,7 +476,7 @@ private[merge] object SegmentGrouper extends LazyLogging {
                 fromValue match {
                   case Some(fromValue) =>
                     fromValue match {
-                      case put @ Value.Put(fromValue, deadline) =>
+                      case put @ Value.Put(fromValue, deadline, appliedFunctions) =>
                         if (put.hasTimeLeft())
                           doAdd(
                             Transient.Put(
@@ -480,7 +485,8 @@ private[merge] object SegmentGrouper extends LazyLogging {
                               deadline = deadline,
                               _,
                               falsePositiveRate = bloomFilterFalsePositiveRate,
-                              compressDuplicateValues = compressDuplicateValues
+                              compressDuplicateValues = compressDuplicateValues,
+                              appliedFunctions = appliedFunctions
                             )
                           )
                         else

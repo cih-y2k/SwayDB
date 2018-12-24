@@ -54,9 +54,9 @@ class FixedEntryReaderWriterSpec extends WordSpec with CommonAssertions {
       val duplicateDeadline = if (Random.nextBoolean()) previous.deadline else randomDeadlineOption
       val next =
         if (Random.nextBoolean())
-          Transient.Remove(key = randomIntMax(), deadline = duplicateDeadline, Some(previous), 0.1)
+          Transient.Remove(key = randomIntMax(), deadline = duplicateDeadline, Some(previous), 0.1, Slice.emptySeqBytes)
         else
-          Transient.Put(key = randomIntMax(), value = duplicateValues, deadline = duplicateDeadline, Some(previous), 0.1, compressDuplicateValues = true)
+          Transient.Put(key = randomIntMax(), value = duplicateValues, deadline = duplicateDeadline, Some(previous), 0.1, compressDuplicateValues = true, Slice.emptySeqBytes)
 
       println("previous: " + previous)
       println("next: " + next)
