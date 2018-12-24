@@ -184,4 +184,20 @@ private[swaydb] object Value {
       )
 
   }
+
+  case class UpdateFunction(deadline: Option[Deadline],
+                            appliedFunctions: Seq[Slice[Byte]]) extends FromValue with RangeValue {
+
+    override val isRemove: Boolean = false
+
+    override def hasTimeLeft(): Boolean =
+      deadline.forall(_.hasTimeLeft())
+
+    override def hasTimeLeftWithGrace(grace: FiniteDuration): Boolean =
+      deadline.forall(deadline => (deadline - grace).hasTimeLeft())
+
+    def unslice(): Value.UpdateFunction =
+      UpdateFunction(deadline, appliedFunctions.unslice())
+
+  }
 }
