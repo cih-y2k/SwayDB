@@ -222,8 +222,8 @@ trait CommonAssertions extends TryAssert with FutureBase with TestData {
             case Transient.Remove(key, deadline, previous, falsePositiveRate, appliedFunctions) =>
               Memory.Remove(key, deadline, appliedFunctions)
 
-            case Transient.Update(key, value, deadline, previous, falsePositiveRate, compressDuplicateValues, appliedFunctions) =>
-              Memory.Update(key, value, deadline, appliedFunctions)
+            case Transient.Update(key, value, deadline, previous, falsePositiveRate, compressDuplicateValues, updateFunctions, appliedFunctions) =>
+              Memory.Update(key, value, deadline, updateFunctions, appliedFunctions)
 
             case Transient.Put(key, value, deadline, previous, falsePositiveRate, compressDuplicateValues, appliedFunctions) =>
               Memory.Put(key, value, deadline, appliedFunctions)
@@ -327,7 +327,7 @@ trait CommonAssertions extends TryAssert with FutureBase with TestData {
                     appliedFunctions = appliedFunctions
                   )
 
-                case Memory.Update(key, value, deadline, appliedFunctions) =>
+                case Memory.Update(key, value, deadline, updateFunctions, appliedFunctions) =>
                   Transient.Update(
                     key = key,
                     value = value,
@@ -335,6 +335,7 @@ trait CommonAssertions extends TryAssert with FutureBase with TestData {
                     previous = None,
                     deadline = deadline,
                     compressDuplicateValues = true,
+                    updateFunctions = updateFunctions,
                     appliedFunctions = appliedFunctions
                   )
 
@@ -383,7 +384,7 @@ trait CommonAssertions extends TryAssert with FutureBase with TestData {
                     appliedFunctions = appliedFunctions
                   )
 
-                case put @ Persistent.Update(key, deadline, valueReader, nextIndexOffset, nextIndexSize, indexOffset, valueOffset, valueLength, appliedFunctions) =>
+                case put @ Persistent.Update(key, deadline, valueReader, nextIndexOffset, nextIndexSize, indexOffset, valueOffset, valueLength, updateFunctions, appliedFunctions) =>
                   Transient.Update(
                     key = key,
                     value = put.getOrFetchValue.assertGetOpt,
@@ -391,6 +392,7 @@ trait CommonAssertions extends TryAssert with FutureBase with TestData {
                     previous = None,
                     deadline = deadline,
                     compressDuplicateValues = true,
+                    updateFunctions = updateFunctions,
                     appliedFunctions = appliedFunctions
                   )
 
@@ -465,8 +467,8 @@ trait CommonAssertions extends TryAssert with FutureBase with TestData {
                 case put @ Persistent.Put(key, deadline, valueReader, nextIndexOffset, nextIndexSize, indexOffset, valueOffset, valueLength, appliedFunctions) =>
                   Memory.Put(key, put.getOrFetchValue.assertGetOpt, deadline, appliedFunctions)
 
-                case put @ Persistent.Update(key, deadline, valueReader, nextIndexOffset, nextIndexSize, indexOffset, valueOffset, valueLength, appliedFunctions) =>
-                  Memory.Update(key, put.getOrFetchValue.assertGetOpt, deadline, appliedFunctions)
+                case put @ Persistent.Update(key, deadline, valueReader, nextIndexOffset, nextIndexSize, indexOffset, valueOffset, valueLength, updateFunctions, appliedFunctions) =>
+                  Memory.Update(key, put.getOrFetchValue.assertGetOpt, deadline, updateFunctions, appliedFunctions)
 
                 case Persistent.Remove(_key, deadline, indexOffset, nextIndexOffset, nextIndexSize, appliedFunctions) =>
                   Memory.Remove(_key, deadline, appliedFunctions)
@@ -492,7 +494,7 @@ trait CommonAssertions extends TryAssert with FutureBase with TestData {
           s"Remove(deadline = $deadline)"
         case Value.Put(value, deadline, appliedFunctions) =>
           s"Put(${value.map(_.read[Int]).getOrElse("None")}, deadline = $deadline)"
-        case Value.Update(value, deadline, appliedFunctions) =>
+        case Value.Update(value, deadline, updateFunctions, appliedFunctions) =>
           s"Update(${value.map(_.read[Int]).getOrElse("None")}, deadline = $deadline)"
       }
   }

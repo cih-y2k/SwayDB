@@ -20,8 +20,8 @@
 package swaydb.core.data
 
 import swaydb.data.slice.Slice
-
 import scala.concurrent.duration.{Deadline, FiniteDuration}
+import scala.util.Try
 
 private[swaydb] sealed trait Value {
 
@@ -59,8 +59,8 @@ private[swaydb] object Value {
         case Value.Remove(deadline, appliedFunctions) =>
           Memory.Remove(key, deadline, appliedFunctions)
 
-        case Value.Update(value, deadline, appliedFunctions) =>
-          Memory.Update(key, value, deadline, appliedFunctions)
+        case Value.Update(value, deadline, updateFunctions, appliedFunctions) =>
+          Memory.Update(key, value, deadline, updateFunctions, appliedFunctions)
       }
   }
 
@@ -75,8 +75,8 @@ private[swaydb] object Value {
           Memory.Remove(key, deadline, appliedFunctions)
         case Put(value, deadline, appliedFunctions) =>
           Memory.Put(key, value, deadline, appliedFunctions)
-        case Update(value, deadline, appliedFunctions) =>
-          Memory.Update(key, value, deadline, appliedFunctions)
+        case Update(value, deadline, updateFunctions, appliedFunctions) =>
+          Memory.Update(key, value, deadline, updateFunctions, appliedFunctions)
       }
   }
 
@@ -141,29 +141,30 @@ private[swaydb] object Value {
 
   object Update {
     def apply(value: Slice[Byte]): Update =
-      new Update(Some(value), None, Slice.emptySeqBytes)
+      new Update(Some(value), None, Slice.emptySeqBytes, Slice.emptySeqBytes)
 
     def apply(value: Slice[Byte], deadline: Option[Deadline]): Update =
-      new Update(Some(value), deadline, Slice.emptySeqBytes)
+      new Update(Some(value), deadline, Slice.emptySeqBytes, Slice.emptySeqBytes)
 
     def apply(value: Slice[Byte], removeAfter: Deadline): Update =
-      new Update(Some(value), Some(removeAfter), Slice.emptySeqBytes)
+      new Update(Some(value), Some(removeAfter), Slice.emptySeqBytes, Slice.emptySeqBytes)
 
     def apply(value: Option[Slice[Byte]], removeAfter: Option[Deadline]): Update =
-      new Update(value, removeAfter, Slice.emptySeqBytes)
+      new Update(value, removeAfter, Slice.emptySeqBytes, Slice.emptySeqBytes)
 
     def apply(value: Slice[Byte], duration: FiniteDuration): Update =
-      new Update(Some(value), Some(duration.fromNow), Slice.emptySeqBytes)
+      new Update(Some(value), Some(duration.fromNow), Slice.emptySeqBytes, Slice.emptySeqBytes)
 
     def apply(value: Option[Slice[Byte]], duration: FiniteDuration): Update =
-      new Update(value, Some(duration.fromNow), Slice.emptySeqBytes)
+      new Update(value, Some(duration.fromNow), Slice.emptySeqBytes, Slice.emptySeqBytes)
 
     def apply(value: Option[Slice[Byte]])(removeAfter: Deadline): Update =
-      new Update(value, Some(removeAfter), Slice.emptySeqBytes)
+      new Update(value, Some(removeAfter), Slice.emptySeqBytes, Slice.emptySeqBytes)
   }
 
   case class Update(value: Option[Slice[Byte]],
                     deadline: Option[Deadline],
+                    updateFunctions: Seq[Slice[Byte]],
                     appliedFunctions: Seq[Slice[Byte]]) extends FromValue with RangeValue {
 
     override val isRemove: Boolean = false
@@ -175,7 +176,12 @@ private[swaydb] object Value {
       deadline.forall(deadline => (deadline - grace).hasTimeLeft())
 
     def unslice(): Value.Update =
-      Value.Update(value.unslice(), deadline, appliedFunctions.unslice())
+      Value.Update(
+        value = value.unslice(),
+        deadline = deadline,
+        updateFunctions = updateFunctions.unslice(),
+        appliedFunctions = appliedFunctions.unslice()
+      )
 
   }
 }

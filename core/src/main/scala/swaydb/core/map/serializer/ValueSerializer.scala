@@ -154,7 +154,7 @@ object ValueSerializers {
                 deadline =>
                   readAppliedFunctionsLevelZero(reader) map {
                     appliedFunctions =>
-                      Value.Update(None, deadline, appliedFunctions)
+                      Value.Update(None, deadline, ???, appliedFunctions)
                   }
               }
             else
@@ -164,7 +164,7 @@ object ValueSerializers {
                     deadline =>
                       readAppliedFunctionsLevelZero(reader) map {
                         appliedFunctions =>
-                          Value.Update(Some(value), deadline, appliedFunctions)
+                          Value.Update(Some(value), deadline, ???, appliedFunctions)
                       }
                   }
               }
@@ -279,7 +279,7 @@ object ValueSerializers {
                 deadline =>
                   readAppliedFunctionsLevels(reader) map {
                     appliedFunctions =>
-                      Value.Update(None, deadline, appliedFunctions)
+                      Value.Update(None, deadline, ???, appliedFunctions)
                   }
               }
             else
@@ -289,7 +289,7 @@ object ValueSerializers {
                     deadline =>
                       readAppliedFunctionsLevels(reader) map {
                         appliedFunctions =>
-                          Value.Update(Some(value), deadline, appliedFunctions)
+                          Value.Update(Some(value), deadline, ???, appliedFunctions)
                       }
                   }
               }

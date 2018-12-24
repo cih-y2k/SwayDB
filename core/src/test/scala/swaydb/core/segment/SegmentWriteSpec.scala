@@ -207,7 +207,7 @@ sealed trait SegmentWriteSpec extends TestBase with Benchmark {
                   case Memory.Put(key, value, _, _) =>
                     key.underlyingArraySize shouldBe 1
                     value.foreach(_.underlyingArraySize shouldBe 1)
-                  case Memory.Update(key, value, _, _) =>
+                  case Memory.Update(key, value, _, _, _) =>
                     key.underlyingArraySize shouldBe 1
                     value.foreach(_.underlyingArraySize shouldBe 1)
 
@@ -223,13 +223,13 @@ sealed trait SegmentWriteSpec extends TestBase with Benchmark {
                 fromValue foreach {
                   case Value.Put(value, _, _) =>
                     value.foreach(_.underlyingArraySize shouldBe 1)
-                  case Value.Update(value, _, _) =>
+                  case Value.Update(value, _, _, _) =>
                     value.foreach(_.underlyingArraySize shouldBe 1)
                   case Value.Remove(None, _) =>
                 }
 
                 rangeValue match {
-                  case Value.Update(value, _, _) =>
+                  case Value.Update(value, _, _, _) =>
                     value.foreach(_.underlyingArraySize shouldBe 1)
                   case Value.Remove(None, _) =>
                 }
@@ -240,7 +240,7 @@ sealed trait SegmentWriteSpec extends TestBase with Benchmark {
                     key.underlyingArraySize shouldBe 1
                     fixed.getOrFetchValue.assertGetOpt.foreach(_.underlyingArraySize shouldBe 1)
 
-                  case Persistent.Update(key, value, _, _, _, _, _, _, _) =>
+                  case Persistent.Update(key, value, _, _, _, _, _, _, _, _) =>
                     key.underlyingArraySize shouldBe 1
                     fixed.getOrFetchValue.assertGetOpt.foreach(_.underlyingArraySize shouldBe 1)
 
@@ -256,12 +256,12 @@ sealed trait SegmentWriteSpec extends TestBase with Benchmark {
                 fromValue foreach {
                   case Value.Put(value, _, _) =>
                     value.foreach(_.underlyingArraySize shouldBe 1)
-                  case Value.Update(value, _, _) =>
+                  case Value.Update(value, _, _, _) =>
                     value.foreach(_.underlyingArraySize shouldBe 1)
                   case Value.Remove(None, _) =>
                 }
                 rangeValue match {
-                  case Value.Update(value, _, _) =>
+                  case Value.Update(value, _, _, _) =>
                     value.foreach(_.underlyingArraySize shouldBe 1)
                   case Value.Remove(None, _) =>
                 }

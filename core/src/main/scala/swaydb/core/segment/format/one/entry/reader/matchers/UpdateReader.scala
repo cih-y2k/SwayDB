@@ -56,6 +56,7 @@ object UpdateReader {
                       indexOffset = indexOffset,
                       valueOffset = valueOffsetAndLength.map(_._1).getOrElse(-1),
                       valueLength = valueOffsetAndLength.map(_._2).getOrElse(0),
+                      updateFunctions = ???,
                       appliedFunctions = appliedFunctions
                     )
                 }

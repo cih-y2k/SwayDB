@@ -158,6 +158,7 @@ private[core] object Segment extends LazyLogging {
                         key = keyUnsliced,
                         value = Some(value.unslice()),
                         deadline = update.deadline,
+                        updateFunctions = update.updateFunctions.unslice(),
                         appliedFunctions = update.appliedFunctions.unslice()
                       )
                     )
@@ -169,6 +170,7 @@ private[core] object Segment extends LazyLogging {
                         key = keyUnsliced,
                         value = None,
                         deadline = update.deadline,
+                        updateFunctions = update.updateFunctions.unslice(),
                         appliedFunctions = update.appliedFunctions.unslice()
                       )
                     )

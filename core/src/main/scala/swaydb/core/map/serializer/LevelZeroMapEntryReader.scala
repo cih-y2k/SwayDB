@@ -74,7 +74,7 @@ object LevelZeroMapEntryReader {
         after <- reader.readLong()
       } yield {
         val deadline = if (after == 0) None else Some(Deadline(after, TimeUnit.NANOSECONDS))
-        Some(MapEntry.Put(key, Memory.Update(key, value, deadline, appliedFunctions))(LevelZeroMapEntryWriter.Level0UpdateWriter))
+        Some(MapEntry.Put(key, Memory.Update(key, value, deadline, ???, appliedFunctions))(LevelZeroMapEntryWriter.Level0UpdateWriter))
       }
   }
 

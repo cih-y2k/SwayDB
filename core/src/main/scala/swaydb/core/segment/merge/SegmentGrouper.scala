@@ -433,7 +433,7 @@ private[merge] object SegmentGrouper extends LazyLogging {
                 else
                   TryUtil.successUnit
 
-              case Memory.Update(key, value, deadline, appliedFunctions) =>
+              case Memory.Update(key, value, deadline, updateFunctions, appliedFunctions) =>
                 if (!isLastLevel)
                   doAdd(
                     Transient.Update(
@@ -443,6 +443,7 @@ private[merge] object SegmentGrouper extends LazyLogging {
                       _,
                       falsePositiveRate = bloomFilterFalsePositiveRate,
                       compressDuplicateValues = compressDuplicateValues,
+                      updateFunctions = updateFunctions,
                       appliedFunctions = appliedFunctions
                     )
                   )
@@ -461,6 +462,7 @@ private[merge] object SegmentGrouper extends LazyLogging {
                           _,
                           falsePositiveRate = bloomFilterFalsePositiveRate,
                           compressDuplicateValues = compressDuplicateValues,
+                          updateFunctions = update.updateFunctions,
                           appliedFunctions = update.appliedFunctions
                         )
                       )
