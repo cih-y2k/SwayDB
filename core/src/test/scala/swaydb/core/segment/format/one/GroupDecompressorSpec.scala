@@ -30,7 +30,7 @@ import swaydb.core.util.TryUtil
 import swaydb.core.util.TryUtil._
 import swaydb.data.slice.Slice
 import swaydb.data.util.StorageUnits._
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -45,7 +45,7 @@ import scala.util.{Failure, Random, Success}
   */
 class GroupDecompressorSpec extends TestBase {
 
-  override implicit val ordering: Ordering[Slice[Byte]] = KeyOrder.default
+  override implicit val keyOrder: KeyOrder[Slice[Byte]] = KeyOrder.default
 
   val keyValueCount = 10000
 

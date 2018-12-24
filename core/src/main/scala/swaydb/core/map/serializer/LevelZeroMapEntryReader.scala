@@ -20,12 +20,10 @@
 package swaydb.core.map.serializer
 
 import java.util.concurrent.TimeUnit
-
 import swaydb.core.data.Memory
 import swaydb.core.map.MapEntry
 import swaydb.core.util.TryUtil
 import swaydb.data.slice.{Reader, Slice}
-
 import scala.concurrent.duration.Deadline
 import scala.util.{Failure, Success, Try}
 
@@ -73,7 +71,6 @@ object LevelZeroMapEntryReader {
         Some(MapEntry.Put(key, Memory.Update(key, value, deadline))(LevelZeroMapEntryWriter.Level0UpdateWriter))
       }
   }
-
 
   implicit object Level0RangeReader extends MapEntryReader[MapEntry.Put[Slice[Byte], Memory.Range]] {
 

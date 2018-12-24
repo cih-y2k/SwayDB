@@ -25,12 +25,12 @@ import swaydb.core.level.zero.LevelZeroSkipListMerge
 import swaydb.core.map.serializer.LevelZeroMapEntryWriter.Level0PutWriter
 import swaydb.data.slice.Slice
 import swaydb.data.util.StorageUnits._
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import scala.concurrent.duration._
 
 class MapStressSpec extends TestBase {
 
-  override implicit val ordering: Ordering[Slice[Byte]] = KeyOrder.default
+  override implicit val keyOrder: KeyOrder[Slice[Byte]] = KeyOrder.default
   implicit val skipListMerger = LevelZeroSkipListMerge(10.seconds)
 
   "Map" should {

@@ -19,6 +19,7 @@
 
 package swaydb.core
 
+import java.util.concurrent.atomic.AtomicLong
 import swaydb.compression.CompressionInternal
 import swaydb.core.data.Value.{FromValue, RangeValue}
 import swaydb.core.data.{Memory, _}
@@ -26,11 +27,15 @@ import swaydb.core.map.serializer.RangeValueSerializers._
 import swaydb.data.slice.Slice
 import swaydb.serializers.Default._
 import swaydb.serializers._
-
 import scala.concurrent.duration._
 import scala.util.Random
 
 trait TestData extends TryAssert {
+
+  /**
+    * Sequential time bytes generator.
+    */
+  private val timeCount = new AtomicLong(0)
 
   def randomStringOption: Option[Slice[Byte]] =
     if (Random.nextBoolean())
@@ -59,13 +64,14 @@ trait TestData extends TryAssert {
     Memory.Remove(key, deadline)
 
   def randomFixedKeyValue(key: Slice[Byte],
-                          value: Option[Slice[Byte]] = randomStringOption): Memory.Fixed =
+                          value: Option[Slice[Byte]] = randomStringOption,
+                          deadline: Option[Deadline] = randomDeadlineOption): Memory.Fixed =
     if (Random.nextBoolean())
-      Memory.Put(key, value, randomDeadlineOption)
+      Memory.Put(key, value, deadline)
     else if (Random.nextBoolean())
-      Memory.Remove(key, randomDeadlineOption)
+      Memory.Remove(key, deadline)
     else
-      Memory.Update(key, value, randomDeadlineOption)
+      Memory.Update(key, value, deadline)
 
   def randomCompression(minCompressionPercentage: Double = Double.MinValue): CompressionInternal =
     CompressionInternal.random(minCompressionPercentage = minCompressionPercentage)
@@ -174,7 +180,8 @@ trait TestData extends TryAssert {
                              addRandomRanges: Boolean = Random.nextBoolean(),
                              addRandomRemoveDeadlines: Boolean = Random.nextBoolean(),
                              addRandomPutDeadlines: Boolean = Random.nextBoolean(),
-                             addRandomGroups: Boolean = Random.nextBoolean()): Slice[KeyValue.WriteOnly] =
+                             addRandomGroups: Boolean = Random.nextBoolean(),
+                             addRandomTimes: Boolean = Random.nextBoolean()): Slice[KeyValue.WriteOnly] =
     randomIntKeyValues(
       count = count,
       startId = startId,
@@ -184,7 +191,8 @@ trait TestData extends TryAssert {
       addRandomRanges = addRandomRanges,
       addRandomRemoveDeadlines = addRandomRemoveDeadlines,
       addRandomPutDeadlines = addRandomPutDeadlines,
-      addRandomGroups = addRandomGroups
+      addRandomGroups = addRandomGroups,
+      addRandomTimes = addRandomTimes
     )
 
   def groupsOnly(count: Int = 5,
@@ -207,7 +215,8 @@ trait TestData extends TryAssert {
                          addRandomRemoveDeadlines: Boolean = false,
                          addRandomPutDeadlines: Boolean = false,
                          addRandomRanges: Boolean = false,
-                         addRandomGroups: Boolean = false): Slice[KeyValue.WriteOnly] = {
+                         addRandomGroups: Boolean = false,
+                         addRandomTimes: Boolean = false): Slice[KeyValue.WriteOnly] = {
     //    println(
     //      s"""
     //        |nonValue : $nonValue
@@ -235,14 +244,26 @@ trait TestData extends TryAssert {
         key = key + 1
       } else if ((addRandomRemoves || addRandomRanges || addRandomGroups) && Random.nextBoolean()) {
         if (addRandomRemoves) {
-          slice add Transient.Remove(key, 0.1, slice.lastOption, deadline = if (addRandomRemoveDeadlines && Random.nextBoolean()) Some(10.seconds.fromNow) else None)
+          slice add Transient.Remove(
+            key: Slice[Byte],
+            0.1,
+            previous = slice.lastOption,
+            deadline = if (addRandomRemoveDeadlines && Random.nextBoolean()) Some(10.seconds.fromNow) else None
+          )
 
           key = key + 1
         }
         if (addRandomRanges) {
           //          val value: Slice[Byte] = valueSize.map(size => Random.nextString(size): Slice[Byte]).getOrElse(randomInt(): Slice[Byte])
           val toKey = key + 10
-          slice add Transient.Range[FromValue, RangeValue](key, toKey, randomFromValueOption(), randomRangeValue(), previous = slice.lastOption, falsePositiveRate = 0.1)
+          slice add Transient.Range[FromValue, RangeValue](
+            fromKey = key,
+            toKey = toKey,
+            fromValue = randomFromValueOption(),
+            rangeValue = randomRangeValue(),
+            previous = slice.lastOption,
+            falsePositiveRate = 0.1
+          )
           //randomly skip the Range's toKey for the next key.
           if (Random.nextBoolean())
             key = toKey
@@ -261,6 +282,7 @@ trait TestData extends TryAssert {
               addRandomRemoveDeadlines = addRandomRemoveDeadlines,
               addRandomPutDeadlines = addRandomPutDeadlines,
               addRandomRanges = addRandomRanges,
+              addRandomTimes = addRandomTimes,
               addRandomGroups = false //do not create more inner groups.
             )
 
@@ -275,11 +297,12 @@ trait TestData extends TryAssert {
       } else {
         //        val value: Slice[Byte] = valueSize.map(size => Random.nextString(size): Slice[Byte]).getOrElse(randomInt(): Slice[Byte])
         slice add Transient.Put(
-          key,
-          value = key,
-          previous = slice.lastOption,
+          key = key: Slice[Byte],
+          value = Some(key),
           falsePositiveRate = 0.1,
-          compressDuplicateValues = true
+          previous = slice.lastOption,
+          compressDuplicateValues = true,
+          deadline = if (addRandomPutDeadlines && Random.nextBoolean()) Some(10.seconds.fromNow) else None
         )
         key = key + 1
       }

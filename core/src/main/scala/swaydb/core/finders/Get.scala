@@ -22,15 +22,15 @@ package swaydb.core.finders
 import swaydb.core.data.{KeyValue, Memory, Value}
 import swaydb.core.util.TryUtil
 import swaydb.data.slice.Slice
-
 import scala.util.{Success, Try}
+import swaydb.data.order.KeyOrder
 
 object Get {
 
   def apply(key: Slice[Byte],
             getFromCurrentLevel: Slice[Byte] => Try[Option[KeyValue.ReadOnly.SegmentResponse]],
-            getFromNextLevel: Slice[Byte] => Try[Option[KeyValue.ReadOnly.Put]])(implicit ordering: Ordering[Slice[Byte]]): Try[Option[KeyValue.ReadOnly.Put]] = {
-    import ordering._
+            getFromNextLevel: Slice[Byte] => Try[Option[KeyValue.ReadOnly.Put]])(implicit keyOrder: KeyOrder[Slice[Byte]]): Try[Option[KeyValue.ReadOnly.Put]] = {
+    import keyOrder._
 
     def returnRangeValue(current: Value): Try[Option[KeyValue.ReadOnly.Put]] =
       current match {

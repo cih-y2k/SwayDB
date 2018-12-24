@@ -29,7 +29,7 @@ import scala.collection.JavaConverters._
 /**
   * Generates if conditions for all readers.
   */
-object ReaderConditionsGenerator extends App {
+object IfConditionGenerator extends App {
   implicit class Implicits(entryId: EntryId) {
     def name =
       entryId.getClass.getName.dropRight(1).replaceAll("swaydb.core.segment.format.one.entry.id.", "").replaceAll("\\$", ".")
@@ -71,10 +71,10 @@ object ReaderConditionsGenerator extends App {
 
           if (groupIndex == 0)
             s"\t\t$ifCondition"
-          else if (groupIndex == groupedIds.size - 1) {
-            s"""s"\t\telse $ifCondition"
-               |\t\telse $failure\n""".stripMargin
-          }
+//          else if (groupIndex == groupedIds.size - 1) {
+//            s"""s"\t\telse $ifCondition"
+//               |\t\telse $failure\n""".stripMargin
+//          }
           else
             s"\t\telse $ifCondition"
       }
@@ -90,25 +90,7 @@ object ReaderConditionsGenerator extends App {
   }
 
   def ids: Seq[List[EntryId]] =
-    Seq(
-      PutKeyUncompressedEntryId.keyIdsList,
-      PutKeyFullyCompressedEntryId.keyIdsList,
-      PutKeyPartiallyCompressedEntryId.keyIdsList,
-
-      RemoveEntryId.keyIdsList,
-
-      UpdateKeyUncompressedEntryId.keyIdsList,
-      UpdateKeyFullyCompressedEntryId.keyIdsList,
-      UpdateKeyPartiallyCompressedEntryId.keyIdsList,
-
-      RangeKeyUncompressedEntryId.keyIdsList,
-      RangeKeyFullyCompressedEntryId.keyIdsList,
-      RangeKeyPartiallyCompressedEntryId.keyIdsList,
-
-      GroupKeyUncompressedEntryId.keyIdsList,
-      GroupKeyFullyCompressedEntryId.keyIdsList,
-      GroupKeyPartiallyCompressedEntryId.keyIdsList
-    )
+    IdsGenerator.ids.map(_.keyIdsList)
 
   ids foreach write
 

@@ -19,10 +19,11 @@
 
 package swaydb
 
+import swaydb.data.order.KeyOrder
 import swaydb.data.slice.Slice
 import swaydb.serializers.Serializer
 
-abstract class TypedOrdering[K](implicit serializer: Serializer[K]) extends Ordering[Slice[Byte]] {
+abstract class KeyOrderTyped[K](implicit serializer: Serializer[K]) extends KeyOrder[Slice[Byte]] {
   def compare(left: K, right: K): Int
 
   override def compare(left: Slice[Byte], right: Slice[Byte]): Int =

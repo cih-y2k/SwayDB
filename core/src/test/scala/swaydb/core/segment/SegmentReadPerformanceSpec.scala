@@ -29,7 +29,7 @@ import swaydb.core.util.Benchmark
 import swaydb.core.{TestBase, TestLimitQueues}
 import swaydb.data.slice.Slice
 import swaydb.data.util.StorageUnits._
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 
 //@formatter:off
 class SegmentReadPerformanceSpec0 extends SegmentReadPerformanceSpec {
@@ -91,7 +91,7 @@ class SegmentReadPerformanceGroupedKeyValuesSpec3 extends SegmentReadPerformance
 
 sealed trait SegmentReadPerformanceSpec extends TestBase with Benchmark {
 
-  override implicit val ordering = KeyOrder.default
+  override implicit val keyOrder = KeyOrder.default
   implicit val compression = groupingStrategy
 
   def testGroupedKeyValues: Boolean
@@ -116,7 +116,7 @@ sealed trait SegmentReadPerformanceSpec extends TestBase with Benchmark {
         forInMemory = false,
         bloomFilterFalsePositiveRate = 0.1,
         compressDuplicateValues = true
-      )(ordering = ordering, groupingStrategy = Some(KeyValueGroupingStrategyInternal(DefaultGroupingStrategy()))).assertGet
+      )(keyOrder = keyOrder, groupingStrategy = Some(KeyValueGroupingStrategyInternal(DefaultGroupingStrategy()))).assertGet
 
     grouped should have size 1
     grouped.head.toSlice

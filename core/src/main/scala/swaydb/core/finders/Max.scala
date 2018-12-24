@@ -22,8 +22,8 @@ package swaydb.core.finders
 import swaydb.core.data.KeyValue
 import swaydb.core.util.TryUtil
 import swaydb.data.slice.Slice
-
 import scala.util.{Success, Try}
+import swaydb.data.order.KeyOrder
 
 object Max {
 
@@ -34,8 +34,8 @@ object Max {
     *
     */
   def apply(current: KeyValue.ReadOnly.Fixed,
-            next: Option[KeyValue.ReadOnly.Put])(implicit ordering: Ordering[Slice[Byte]]): Try[Option[KeyValue.ReadOnly.Put]] = {
-    import ordering._
+            next: Option[KeyValue.ReadOnly.Put])(implicit keyOrder: KeyOrder[Slice[Byte]]): Try[Option[KeyValue.ReadOnly.Put]] = {
+    import keyOrder._
     current match {
       case current: KeyValue.ReadOnly.Put =>
         next match {

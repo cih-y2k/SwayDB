@@ -25,6 +25,7 @@ import swaydb.core.group.compression.GroupDecompressor
 import swaydb.core.io.reader.Reader
 import swaydb.core.segment.format.one.KeyMatcher
 import swaydb.core.segment.format.one.MatchResult._
+import swaydb.data.order.KeyOrder
 import swaydb.data.segment.MaxKey
 import swaydb.data.slice.Slice
 import swaydb.serializers.Default._
@@ -32,7 +33,7 @@ import swaydb.serializers._
 
 class KeyMatcherSpec extends TestBase {
 
-  implicit val integer = new Ordering[Slice[Byte]] {
+  implicit val integer = new KeyOrder[Slice[Byte]] {
     def compare(a: Slice[Byte], b: Slice[Byte]): Int =
       IntSerializer.read(a).compareTo(IntSerializer.read(b))
   }

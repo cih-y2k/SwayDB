@@ -19,12 +19,10 @@
 
 package swaydb
 
-import swaydb.{Map, SwayDB}
-import swaydb.core.TestBase
-import swaydb.serializers.Default._
-
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import swaydb.core.TestBase
+import swaydb.serializers.Default._
 
 class SwayDBStressSpec0 extends SwayDBStressSpec {
   val keyValueCount: Int = 100000
@@ -37,8 +35,6 @@ class SwayDBStressSpec1 extends SwayDBStressSpec {
 
   val keyValueCount: Int = 100000
 
-  import swaydb._
-
   override def newDB(minTimeLeftToUpdateExpiration: FiniteDuration): Map[Int, String] =
     SwayDB.persistent[Int, String](randomDir, mapSize = 1.byte, minTimeLeftToUpdateExpiration = minTimeLeftToUpdateExpiration).assertGet
 }
@@ -46,8 +42,6 @@ class SwayDBStressSpec1 extends SwayDBStressSpec {
 class SwayDBStressSpec2 extends SwayDBStressSpec {
 
   val keyValueCount: Int = 100000
-
-  import swaydb._
 
   override def newDB(minTimeLeftToUpdateExpiration: FiniteDuration): Map[Int, String] =
     SwayDB.memory[Int, String](mapSize = 1.byte, minTimeLeftToUpdateExpiration = minTimeLeftToUpdateExpiration).assertGet

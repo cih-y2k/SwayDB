@@ -30,7 +30,7 @@ import swaydb.core.level.actor.LevelCommand.{Pull, PullRequest, PushSegments, Pu
 import swaydb.data.compaction.Throttle
 import swaydb.data.slice.Slice
 import swaydb.data.util.StorageUnits._
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -47,7 +47,7 @@ sealed trait LevelCompactionSpec extends TestBase with MockFactory {
 
   import TestLevel._
 
-  override implicit val ordering = KeyOrder.default
+  override implicit val keyOrder = KeyOrder.default
 
   "Level" should {
     "merge all it's Segments to lower level" in {

@@ -42,16 +42,25 @@ object EntryId {
   //    } toMap
 
   trait Entry {
+    def emptyAppliedFunctions: AppliedFunctions.Empty
+    def nonEmptyAppliedFunctions: AppliedFunctions.NonEmpty
+  }
+  object Entry {
+    trait Remove extends Entry
+    trait Put extends Entry
+    trait Update extends Entry
+  }
+
+  trait AppliedFunctions {
     //@formatter:off
     def keyFullyCompressed: Key.FullyCompressed
     def keyPartiallyCompressed: Key.PartiallyCompressed
     def keyUncompressed: Key.Uncompressed
     //@formatter:on
   }
-  object Entry {
-    trait Remove extends Entry
-    trait Put extends Entry
-    trait Update extends Entry
+  object AppliedFunctions {
+    trait Empty extends AppliedFunctions
+    trait NonEmpty extends AppliedFunctions
   }
 
   trait Key {
@@ -66,6 +75,7 @@ object EntryId {
     trait PartiallyCompressed extends Key
     trait Uncompressed extends Key
   }
+
 
   sealed trait GetDeadlineId {
     //@formatter:off
@@ -136,4 +146,5 @@ object EntryId {
     trait FullyCompressed extends Deadline
     trait Uncompressed extends Deadline
   }
+
 }

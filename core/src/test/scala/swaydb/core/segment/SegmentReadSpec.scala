@@ -33,7 +33,7 @@ import swaydb.core.segment.SegmentException.SegmentCorruptionException
 import swaydb.core.segment.format.one.SegmentWriter
 import swaydb.data.segment.MaxKey.{Fixed, Range}
 import swaydb.data.slice.Slice
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -71,7 +71,7 @@ class SegmentReadSpec3 extends SegmentReadSpec {
 
 sealed trait SegmentReadSpec extends TestBase with ScalaFutures with PrivateMethodTester {
 
-  override implicit val ordering = KeyOrder.default
+  override implicit val keyOrder = KeyOrder.default
 
   def keyValuesCount: Int
 

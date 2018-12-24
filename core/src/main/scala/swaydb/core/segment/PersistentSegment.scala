@@ -21,7 +21,6 @@ package swaydb.core.segment
 
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentSkipListMap
-
 import bloomfilter.mutable.BloomFilter
 import com.typesafe.scalalogging.LazyLogging
 import swaydb.core.group.compression.data.KeyValueGroupingStrategyInternal
@@ -37,10 +36,10 @@ import swaydb.core.util._
 import swaydb.data.config.Dir
 import swaydb.data.segment.MaxKey
 import swaydb.data.slice.{Reader, Slice}
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Deadline, FiniteDuration}
 import scala.util.{Failure, Success, Try}
+import swaydb.data.order.KeyOrder
 
 private[segment] case class PersistentSegment(file: DBFile,
                                               mmapReads: Boolean,
@@ -49,7 +48,7 @@ private[segment] case class PersistentSegment(file: DBFile,
                                               maxKey: MaxKey,
                                               segmentSize: Int,
                                               removeDeletes: Boolean,
-                                              nearestExpiryDeadline: Option[Deadline])(implicit ordering: Ordering[Slice[Byte]],
+                                              nearestExpiryDeadline: Option[Deadline])(implicit keyOrder: KeyOrder[Slice[Byte]],
                                                                                        keyValueLimiter: KeyValueLimiter,
                                                                                        fileOpenLimiter: DBFile => Unit,
                                                                                        compression: Option[KeyValueGroupingStrategyInternal],
@@ -57,7 +56,7 @@ private[segment] case class PersistentSegment(file: DBFile,
 
   def path = file.path
 
-  private[segment] val cache = new ConcurrentSkipListMap[Slice[Byte], Persistent](ordering)
+  private[segment] val cache = new ConcurrentSkipListMap[Slice[Byte], Persistent](keyOrder)
 
   @volatile private[segment] var footer = Option.empty[SegmentFooter]
 

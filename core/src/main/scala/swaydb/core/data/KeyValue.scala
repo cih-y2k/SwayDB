@@ -19,8 +19,9 @@
 
 package swaydb.core.data
 
+import scala.concurrent.duration.{Deadline, FiniteDuration}
+import scala.util.{Failure, Success, Try}
 import swaydb.compression.CompressionInternal
-import swaydb.core.data.KeyValue.ReadOnly
 import swaydb.core.data.`lazy`.{LazyRangeValue, LazyValue}
 import swaydb.core.group.compression.data.GroupHeader
 import swaydb.core.group.compression.{GroupCompressor, GroupDecompressor, GroupKeyCompressor}
@@ -31,11 +32,9 @@ import swaydb.core.segment.format.one.entry.writer._
 import swaydb.core.segment.{SegmentCache, SegmentCacheInitializer}
 import swaydb.core.util.CollectionUtil._
 import swaydb.core.util.{Bytes, TryUtil}
+import swaydb.data.order.KeyOrder
 import swaydb.data.segment.MaxKey
 import swaydb.data.slice.{Reader, Slice}
-
-import scala.concurrent.duration.{Deadline, FiniteDuration}
-import scala.util.{Failure, Success, Try}
 
 private[core] sealed trait KeyValue {
   def key: Slice[Byte]
@@ -144,8 +143,8 @@ private[core] object KeyValue {
 
     object Range {
       implicit class RangeImplicit(range: KeyValue.ReadOnly.Range) {
-        def contains(key: Slice[Byte])(implicit ordering: Ordering[Slice[Byte]]): Boolean = {
-          import ordering._
+        def contains(key: Slice[Byte])(implicit keyOrder: KeyOrder[Slice[Byte]]): Boolean = {
+          import keyOrder._
           key >= range.fromKey && key < range.toKey
         }
       }
@@ -171,13 +170,13 @@ private[core] object KeyValue {
 
     object Group {
       implicit class GroupImplicit(group: KeyValue.ReadOnly.Group) {
-        def contains(key: Slice[Byte])(implicit ordering: Ordering[Slice[Byte]]): Boolean = {
-          import ordering._
+        def contains(key: Slice[Byte])(implicit keyOrder: KeyOrder[Slice[Byte]]): Boolean = {
+          import keyOrder._
           key >= group.minKey && ((group.maxKey.inclusive && key <= group.maxKey.maxKey) || (!group.maxKey.inclusive && key < group.maxKey.maxKey))
         }
 
-        def containsHigher(key: Slice[Byte])(implicit ordering: Ordering[Slice[Byte]]): Boolean = {
-          import ordering._
+        def containsHigher(key: Slice[Byte])(implicit keyOrder: KeyOrder[Slice[Byte]]): Boolean = {
+          import keyOrder._
           key >= group.minKey && key < group.maxKey.maxKey
         }
       }
@@ -190,7 +189,7 @@ private[core] object KeyValue {
 
       def header(): Try[GroupHeader]
 
-      def segmentCache(implicit ordering: Ordering[Slice[Byte]],
+      def segmentCache(implicit keyOrder: KeyOrder[Slice[Byte]],
                        keyValueLimiter: KeyValueLimiter): SegmentCache
     }
   }
@@ -555,7 +554,7 @@ private[swaydb] object Memory {
     def isValueDefined: Boolean =
       groupDecompressor.isIndexDecompressed()
 
-    def segmentCache(implicit ordering: Ordering[Slice[Byte]],
+    def segmentCache(implicit keyOrder: KeyOrder[Slice[Byte]],
                      keyValueLimiter: KeyValueLimiter): SegmentCache =
       segmentCacheInitializer.segmentCache
 
@@ -581,7 +580,7 @@ private[core] sealed trait Transient extends KeyValue.WriteOnly
 
 private[core] object Transient {
 
-  implicit class TransientImplicits(transient: Transient)(implicit ordering: Ordering[Slice[Byte]]) {
+  implicit class TransientImplicits(transient: Transient)(implicit keyOrder: KeyOrder[Slice[Byte]]) {
     def toMemory: Try[Memory] =
       transient match {
         case put: Transient.Put =>
@@ -706,11 +705,8 @@ private[core] object Transient {
     override val isGroup: Boolean = false
     override val isRemoveRange = false
     override val getOrFetchValue: Try[Option[Slice[Byte]]] = TryUtil.successNone
-    override val valueEntryBytes: Some[Slice[Byte]] = Some(Slice.emptyBytes)
     override val value: Option[Slice[Byte]] = None
-    override val currentStartValueOffsetPosition: Int = previous.map(_.currentStartValueOffsetPosition).getOrElse(0)
-    override val currentEndValueOffsetPosition: Int = previous.map(_.currentEndValueOffsetPosition).getOrElse(0)
-    override val indexEntryBytes: Slice[Byte] = RemoveEntryWriter.write(keyValue = this)
+    override val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition) = RemoveEntryWriter.write(current = this)
     override val hasValueEntryBytes: Boolean = previous.exists(_.hasValueEntryBytes) || valueEntryBytes.exists(_.nonEmpty)
     override val stats =
       Stats(
@@ -1376,20 +1372,6 @@ private[core] object Persistent {
 
   sealed trait Fixed extends Persistent.SegmentResponse with KeyValue.ReadOnly.Fixed
 
-  object Remove {
-    def apply(indexOffset: Int)(key: Slice[Byte],
-                                nextIndexOffset: Int,
-                                nextIndexSize: Int,
-                                deadline: Option[Deadline]): Remove =
-      Remove(
-        _key = key,
-        deadline = deadline,
-        indexOffset = indexOffset,
-        nextIndexOffset = nextIndexOffset,
-        nextIndexSize = nextIndexSize
-      )
-  }
-
   case class Remove(private var _key: Slice[Byte],
                     deadline: Option[Deadline],
                     indexOffset: Int,
@@ -1416,26 +1398,6 @@ private[core] object Persistent {
     override val valueOffset: Int = 0
   }
 
-  object Put {
-    def apply(valueReader: Reader,
-              indexOffset: Int)(key: Slice[Byte],
-                                valueLength: Int,
-                                valueOffset: Int,
-                                nextIndexOffset: Int,
-                                nextIndexSize: Int,
-                                deadline: Option[Deadline]): Put =
-      Put(
-        _key = key,
-        deadline = deadline,
-        valueReader = valueReader,
-        nextIndexOffset = nextIndexOffset,
-        nextIndexSize = nextIndexSize,
-        indexOffset = indexOffset,
-        valueOffset = valueOffset,
-        valueLength = valueLength
-      )
-  }
-
   case class Put(private var _key: Slice[Byte],
                  deadline: Option[Deadline],
                  valueReader: Reader,
@@ -1458,26 +1420,6 @@ private[core] object Persistent {
 
     override def hasTimeLeftAtLeast(minus: FiniteDuration): Boolean =
       deadline.forall(deadline => (deadline - minus).hasTimeLeft())
-  }
-
-  object Update {
-    def apply(valueReader: Reader,
-              indexOffset: Int)(key: Slice[Byte],
-                                valueLength: Int,
-                                valueOffset: Int,
-                                nextIndexOffset: Int,
-                                nextIndexSize: Int,
-                                deadline: Option[Deadline]): Update =
-      Update(
-        _key = key,
-        deadline = deadline,
-        valueReader = valueReader,
-        nextIndexOffset = nextIndexOffset,
-        nextIndexSize = nextIndexSize,
-        indexOffset = indexOffset,
-        valueOffset = valueOffset,
-        valueLength = valueLength
-      )
   }
 
   case class Update(private var _key: Slice[Byte],
@@ -1658,7 +1600,7 @@ private[core] object Persistent {
     def uncompress(): Persistent.Group =
       copy(groupDecompressor = groupDecompressor.uncompress(), valueReader = valueReader.copy())
 
-    def segmentCache(implicit ordering: Ordering[Slice[Byte]],
+    def segmentCache(implicit keyOrder: KeyOrder[Slice[Byte]],
                      keyValueLimiter: KeyValueLimiter): SegmentCache =
       segmentCacheInitializer.segmentCache
   }

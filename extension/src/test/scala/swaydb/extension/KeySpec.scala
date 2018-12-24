@@ -24,9 +24,9 @@ import swaydb.core.TestData
 import swaydb.data.slice.Slice
 import swaydb.serializers.Default._
 import swaydb.serializers.Serializer
-
 import scala.collection.SortedSet
 import scala.util.Random
+import swaydb.data.order.KeyOrder
 
 class KeySpec extends WordSpec with Matchers with TestData {
 
@@ -108,7 +108,7 @@ class KeySpec extends WordSpec with Matchers with TestData {
 
   "ordering" should {
     "ordering MapKeys in the order of Start, Entry & End" in {
-      val order = Ordering.by[Slice[Byte], Int](_.readInt())(Ordering.Int)
+      val order = KeyOrder(Ordering.by[Slice[Byte], Int](_.readInt())(Ordering.Int))
       val mapKeySerializer = Key.serializer[Int](IntSerializer)
       implicit val mapKeyOrder = Ordering.by[Key[Int], Slice[Byte]](mapKeySerializer.write)(Key.ordering(order))
 
@@ -166,7 +166,7 @@ class KeySpec extends WordSpec with Matchers with TestData {
     }
 
     "ordering MapKeys in the order of Start, Entry & End when keys are large String" in {
-      val order = Ordering.by[Slice[Byte], String](_.readString())(Ordering.String)
+      val order = KeyOrder(Ordering.by[Slice[Byte], String](_.readString())(Ordering.String))
       val mapKeySerializer = Key.serializer[String](StringSerializer)
       implicit val mapKeyOrder = Ordering.by[Key[String], Slice[Byte]](mapKeySerializer.write)(Key.ordering(order))
 
@@ -212,7 +212,7 @@ class KeySpec extends WordSpec with Matchers with TestData {
     }
 
     "remove duplicate key-values" in {
-      val order = Ordering.by[Slice[Byte], Int](_.readInt())(Ordering.Int)
+      val order = KeyOrder(Ordering.by[Slice[Byte], Int](_.readInt())(Ordering.Int))
       val mapKeySerializer = Key.serializer[Int](IntSerializer)
       implicit val mapKeyOrder = Ordering.by[Key[Int], Slice[Byte]](mapKeySerializer.write)(Key.ordering(order))
 

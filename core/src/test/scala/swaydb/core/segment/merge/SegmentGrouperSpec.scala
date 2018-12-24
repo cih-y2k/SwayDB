@@ -26,7 +26,7 @@ import swaydb.core.io.reader.Reader
 import swaydb.core.segment.format.one.{SegmentReader, SegmentWriter}
 import swaydb.data.slice.Slice
 import swaydb.data.util.StorageUnits._
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -35,11 +35,11 @@ import scala.util.Random
 
 class SegmentGrouperSpec extends TestBase {
 
-  override implicit val ordering = KeyOrder.default
+  implicit val ordering = KeyOrder.default
   implicit val compression = groupingStrategy
   val keyValueCount = 100
 
-  import ordering._
+  import keyOrder._
 
   "SegmentGrouper.addKeyValue" should {
     "add KeyValue to next split and close the split if the new key-value does not fit" in {

@@ -27,7 +27,7 @@ import swaydb.core.io.reader.Reader
 import swaydb.core.map.serializer.RangeValueSerializers._
 import swaydb.core.segment.format.one.entry.reader.EntryReader
 import swaydb.data.slice.Slice
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -50,7 +50,7 @@ class RangeEntryReaderWriterSpec extends WordSpec with CommonAssertions {
 
   "write and read range entry with other entries" in {
     runThis(1000.times) {
-      val keyValues = randomizedIntKeyValues(count = 1, addRandomGroups = false)
+      val keyValues = randomizedIntKeyValues(count = 1, addRandomGroups = false, addRandomTimes = true)
       val previous = keyValues.head
 
       val fromKey = keyValues.last.key.readInt() + 1

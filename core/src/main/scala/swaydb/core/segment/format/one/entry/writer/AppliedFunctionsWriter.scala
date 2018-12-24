@@ -17,8 +17,20 @@
  * along with SwayDB. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package swaydb
+package swaydb.core.segment.format.one.entry.writer
 
-class Test {
+import swaydb.core.data.KeyValue
+import swaydb.core.segment.format.one.entry.id.EntryId
+import swaydb.core.util.Bytes._
+import swaydb.data.slice.Slice
+
+object AppliedFunctionsWriter {
+
+  /**
+    * @return indexEntry, valueBytes, valueOffsetBytes, nextValuesOffsetPosition
+    */
+  def write(current: KeyValue.WriteOnly,
+            compressDuplicateValues: Boolean): (Slice[Byte], Option[Slice[Byte]], Int, Int) =
+    ???
 
 }

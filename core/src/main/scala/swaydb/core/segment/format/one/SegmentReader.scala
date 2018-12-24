@@ -30,9 +30,9 @@ import swaydb.core.util.{Bytes, CRC32, TryUtil}
 import swaydb.data.slice.Slice._
 import swaydb.data.slice.{Reader, Slice}
 import swaydb.data.util.ByteSizeOf
-
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
+import swaydb.data.order.KeyOrder
 
 /**
   * All public APIs are wrapped around a try catch block because eager fetches on Try's results (.get).
@@ -46,7 +46,7 @@ private[core] object SegmentReader extends LazyLogging {
                                startIndexOffset: Int,
                                endIndexOffset: Int,
                                indexReader: Reader,
-                               valueReader: Reader)(implicit ordering: Ordering[Slice[Byte]]): Try[Persistent] = {
+                               valueReader: Reader)(implicit keyOrder: KeyOrder[Slice[Byte]]): Try[Persistent] = {
     indexReader moveTo previous.nextIndexOffset
     readNextKeyValue(
       indexEntrySizeMayBe = Some(previous.nextIndexSize),
@@ -63,7 +63,7 @@ private[core] object SegmentReader extends LazyLogging {
                                startIndexOffset: Int,
                                endIndexOffset: Int,
                                indexReader: Reader,
-                               valueReader: Reader)(implicit ordering: Ordering[Slice[Byte]]): Try[Persistent] = {
+                               valueReader: Reader)(implicit keyOrder: KeyOrder[Slice[Byte]]): Try[Persistent] = {
     indexReader moveTo fromPosition
     readNextKeyValue(
       indexEntrySizeMayBe = None,
@@ -83,7 +83,7 @@ private[core] object SegmentReader extends LazyLogging {
                                endIndexOffset: Int,
                                indexReader: Reader,
                                valueReader: Reader,
-                               previous: Option[Persistent])(implicit ordering: Ordering[Slice[Byte]]): Try[Persistent] =
+                               previous: Option[Persistent])(implicit keyOrder: KeyOrder[Slice[Byte]]): Try[Persistent] =
     try {
       val positionBeforeRead = indexReader.getPosition
       //size of the index entry to read
@@ -147,7 +147,7 @@ private[core] object SegmentReader extends LazyLogging {
 
   def readAll(footer: SegmentFooter,
               reader: Reader,
-              addTo: Option[Slice[KeyValue.ReadOnly]] = None)(implicit ordering: Ordering[Slice[Byte]]): Try[Slice[KeyValue.ReadOnly]] =
+              addTo: Option[Slice[KeyValue.ReadOnly]] = None)(implicit keyOrder: KeyOrder[Slice[Byte]]): Try[Slice[KeyValue.ReadOnly]] =
     try {
       //since this is a index slice of the full Segment, adjustments for nextIndexOffset is required.
       val adjustNextIndexOffsetBy = footer.startIndexOffset
@@ -267,13 +267,13 @@ private[core] object SegmentReader extends LazyLogging {
 
   def find(matcher: KeyMatcher,
            startFrom: Option[Persistent],
-           reader: Reader)(implicit ordering: Ordering[Slice[Byte]]): Try[Option[Persistent]] =
+           reader: Reader)(implicit keyOrder: KeyOrder[Slice[Byte]]): Try[Option[Persistent]] =
     readFooter(reader) flatMap (find(matcher, startFrom, reader, _))
 
   def find(matcher: KeyMatcher,
            startFrom: Option[Persistent],
            reader: Reader,
-           footer: SegmentFooter)(implicit ordering: Ordering[Slice[Byte]]): Try[Option[Persistent]] =
+           footer: SegmentFooter)(implicit keyOrder: KeyOrder[Slice[Byte]]): Try[Option[Persistent]] =
     try {
       startFrom match {
         case Some(startFrom) =>
@@ -315,7 +315,7 @@ private[core] object SegmentReader extends LazyLogging {
                    next: Option[Persistent],
                    matcher: KeyMatcher,
                    reader: Reader,
-                   footer: SegmentFooter)(implicit ordering: Ordering[Slice[Byte]]): Try[Option[Persistent]] =
+                   footer: SegmentFooter)(implicit keyOrder: KeyOrder[Slice[Byte]]): Try[Option[Persistent]] =
     matcher(previous, next, hasMore = hasMore(next getOrElse previous, footer)) match {
       case MatchResult.Next =>
         val readFrom = next getOrElse previous

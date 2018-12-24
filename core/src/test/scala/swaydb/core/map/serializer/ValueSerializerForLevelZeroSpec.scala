@@ -20,15 +20,14 @@
 package swaydb.core.map.serializer
 
 import org.scalatest.{Matchers, WordSpec}
-import swaydb.core.TryAssert
+import swaydb.core.{CommonAssertions, TryAssert}
 import swaydb.core.data.Value
 import swaydb.data.slice.Slice
 import swaydb.serializers.Default._
 import swaydb.serializers._
-
 import scala.concurrent.duration._
 
-class ValueSerializerForLevelZeroSpec extends WordSpec with Matchers with TryAssert {
+class ValueSerializerForLevelZeroSpec extends WordSpec with Matchers with TryAssert with CommonAssertions{
 
   import ValueSerializers.LevelZero._
 

@@ -27,7 +27,7 @@ import swaydb.core.util.Benchmark
 import swaydb.core.util.FileUtil._
 import swaydb.data.compaction.Throttle
 import swaydb.data.slice.Slice
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -63,7 +63,7 @@ class LevelGetSpec3 extends LevelGetSpec {
   */
 sealed trait LevelGetSpec extends TestBase with MockFactory with Benchmark {
 
-  override implicit val ordering: Ordering[Slice[Byte]] = KeyOrder.default
+  override implicit val keyOrder: KeyOrder[Slice[Byte]] = KeyOrder.default
 
   implicit override val groupingStrategy: Option[KeyValueGroupingStrategyInternal] = randomCompressionTypeOption(keyValuesCount)
 
@@ -79,8 +79,8 @@ sealed trait LevelGetSpec extends TestBase with MockFactory with Benchmark {
 
     "return key when the key exists" in {
       assertOnLevel(
-        keyValues = Slice(Memory.Put(1, "one")),
-        assertion = _.get(1).assertGet shouldBe Memory.Put(1, "one")
+        keyValues = Slice(Memory.Put(1, "one", None)),
+        assertion = _.get(1).assertGet shouldBe Memory.Put(1, "one", None)
       )
     }
 

@@ -25,7 +25,7 @@ import swaydb.core.data.Value.Remove
 import swaydb.core.data.{Memory, Value}
 import swaydb.core.segment.merge.KeyValueMerger
 import swaydb.data.slice.Slice
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -33,7 +33,7 @@ import scala.concurrent.duration._
 
 class SegmentMerger_Range_Into_Fixed extends WordSpec with CommonAssertions {
 
-  override implicit val ordering = KeyOrder.default
+  override implicit val keyOrder = KeyOrder.default
   implicit val compression = groupingStrategy
 
   "Range into Single" when {

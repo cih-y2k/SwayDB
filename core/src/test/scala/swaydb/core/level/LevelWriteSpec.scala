@@ -43,7 +43,7 @@ import swaydb.data.config.Dir
 import swaydb.data.slice.Slice
 import swaydb.data.storage.LevelStorage
 import swaydb.data.util.StorageUnits._
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -77,7 +77,7 @@ class LevelWriteSpec3 extends LevelWriteSpec {
 
 sealed trait LevelWriteSpec extends TestBase with MockFactory with PrivateMethodTester {
 
-  override implicit val ordering: Ordering[Slice[Byte]] = KeyOrder.default
+  override implicit val keyOrder: KeyOrder[Slice[Byte]] = KeyOrder.default
   val keyValuesCount = 100
 
   //  override def deleteFiles: Boolean =
@@ -511,7 +511,7 @@ sealed trait LevelWriteSpec extends TestBase with MockFactory with PrivateMethod
           Array(
             //also randomly set expired deadline for Remove.
             Memory.Put("one", "one"), Memory.Put("two", "two"), Memory.Put("three", "three"), Memory.Remove("four", randomly(expiredDeadline()))
-          ).sorted(ordering.on[KeyValue](_.key)))
+          ).sorted(keyOrder.on[KeyValue](_.key)))
 
       level.putKeyValues(sortedExistingKeyValues).assertGet
 

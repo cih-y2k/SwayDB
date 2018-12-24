@@ -34,7 +34,7 @@ import swaydb.core.util.FileUtil._
 import swaydb.core.{TestBase, TestLimitQueues}
 import swaydb.data.slice.Slice
 import swaydb.data.util.StorageUnits._
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -44,7 +44,7 @@ import scala.util.Random
 
 class MapSpec extends TestBase {
 
-  override implicit val ordering: Ordering[Slice[Byte]] = KeyOrder.default
+  override implicit val keyOrder: KeyOrder[Slice[Byte]] = KeyOrder.default
   implicit val maxSegmentsOpenCacheImplicitLimiter: DBFile => Unit = TestLimitQueues.fileOpenLimiter
   implicit val keyValuesLimitImplicitLimiter: KeyValueLimiter = TestLimitQueues.keyValueLimiter
   implicit val skipListMerger = LevelZeroSkipListMerge(10.seconds)
@@ -340,7 +340,7 @@ class MapSpec extends TestBase {
 
       map.hasRange shouldBe true
 
-      val skipList = new ConcurrentSkipListMap[Slice[Byte], Memory.SegmentResponse](ordering)
+      val skipList = new ConcurrentSkipListMap[Slice[Byte], Memory.SegmentResponse](keyOrder)
       val recoveredFile = PersistentMap.recover(map.path, false, 4.mb, skipList, dropCorruptedTailEntries = false).assertGet._1.item
 
       recoveredFile.isOpen shouldBe true
@@ -378,7 +378,7 @@ class MapSpec extends TestBase {
       map.path.resolveSibling(4.toLogFileId).exists shouldBe false //4.log gets deleted
 
       //reopen file
-      val skipList = new ConcurrentSkipListMap[Slice[Byte], Memory.SegmentResponse](ordering)
+      val skipList = new ConcurrentSkipListMap[Slice[Byte], Memory.SegmentResponse](keyOrder)
       val recoveredFile = PersistentMap.recover(map.path, true, 1.byte, skipList, dropCorruptedTailEntries = false).assertGet._1.item
       recoveredFile.isOpen shouldBe true
       recoveredFile.isMemoryMapped.assertGet shouldBe true
@@ -394,7 +394,7 @@ class MapSpec extends TestBase {
       skipList.get(15: Slice[Byte]) shouldBe Memory.Range(15, 20, None, Value.Update(20))
 
       //reopen the recovered file
-      val skipList2 = new ConcurrentSkipListMap[Slice[Byte], Memory.SegmentResponse](ordering)
+      val skipList2 = new ConcurrentSkipListMap[Slice[Byte], Memory.SegmentResponse](keyOrder)
       val recoveredFile2 = PersistentMap.recover(map.path, true, 1.byte, skipList2, dropCorruptedTailEntries = false).assertGet._1.item
       recoveredFile2.isOpen shouldBe true
       recoveredFile2.isMemoryMapped.assertGet shouldBe true
@@ -423,7 +423,7 @@ class MapSpec extends TestBase {
       map.currentFilePath.fileId.assertGet shouldBe(0, Extension.Log)
       map.close().assertGet
 
-      val skipList = new ConcurrentSkipListMap[Slice[Byte], Memory.SegmentResponse](ordering)
+      val skipList = new ConcurrentSkipListMap[Slice[Byte], Memory.SegmentResponse](keyOrder)
       val file = PersistentMap.recover(map.path, false, 4.mb, skipList, dropCorruptedTailEntries = false).assertGet._1.item
 
       file.isOpen shouldBe true
@@ -443,7 +443,7 @@ class MapSpec extends TestBase {
       import LevelZeroMapEntryReader._
       import LevelZeroMapEntryWriter._
 
-      val skipList = new ConcurrentSkipListMap[Slice[Byte], Memory.SegmentResponse](ordering)
+      val skipList = new ConcurrentSkipListMap[Slice[Byte], Memory.SegmentResponse](keyOrder)
       skipList.put(1, Memory.Put(1, 1))
       skipList.put(2, Memory.Put(2, 2))
       skipList.put(3, Memory.Remove(3))
@@ -453,7 +453,7 @@ class MapSpec extends TestBase {
       val currentFile = PersistentMap.recover(createRandomDir, false, 4.mb, skipList, dropCorruptedTailEntries = false).assertGet._1.item
       val nextFile = PersistentMap.nextFile(currentFile, false, 4.mb, skipList).assertGet
 
-      val nextFileSkipList = new ConcurrentSkipListMap[Slice[Byte], Memory.SegmentResponse](ordering)
+      val nextFileSkipList = new ConcurrentSkipListMap[Slice[Byte], Memory.SegmentResponse](keyOrder)
       val nextFileBytes = DBFile.channelRead(nextFile.path).assertGet.readAll.assertGet
       val mapEntries = MapCodec.read(nextFileBytes, dropCorruptedTailEntries = false).assertGet.item.assertGet
       mapEntries applyTo nextFileSkipList

@@ -24,10 +24,10 @@ import swaydb.core.queue.KeyValueLimiter
 import swaydb.core.segment.merge.MergeList
 import swaydb.core.util.TryUtil
 import swaydb.data.slice.Slice
-
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
+import swaydb.data.order.KeyOrder
 
 private[core] object SegmentAssigner {
 
@@ -35,12 +35,12 @@ private[core] object SegmentAssigner {
   implicit val keyValueLimiter = KeyValueLimiter.none
 
   def assignMinMaxOnlyForSegments(inputSegments: Iterable[Segment],
-                                  targetSegments: Iterable[Segment])(implicit ordering: Ordering[Slice[Byte]]): Try[Iterable[Segment]] =
+                                  targetSegments: Iterable[Segment])(implicit keyOrder: KeyOrder[Slice[Byte]]): Try[Iterable[Segment]] =
     SegmentAssigner.assign(Segment.tempMinMaxKeyValues(inputSegments), targetSegments).map(_.keys)
 
   def assign(keyValues: Slice[KeyValue.ReadOnly],
-             segments: Iterable[Segment])(implicit ordering: Ordering[Slice[Byte]]): Try[mutable.Map[Segment, Slice[KeyValue.ReadOnly]]] = {
-    import ordering._
+             segments: Iterable[Segment])(implicit keyOrder: KeyOrder[Slice[Byte]]): Try[mutable.Map[Segment, Slice[KeyValue.ReadOnly]]] = {
+    import keyOrder._
     val assignmentsMap = mutable.Map.empty[Segment, Slice[KeyValue.ReadOnly]]
     val segmentsIterator = segments.iterator
 

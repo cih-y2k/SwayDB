@@ -23,5 +23,7 @@ object EntryReaderFailure {
 
   case object NoPreviousKeyValue extends Exception("No previous key-value")
   case object NoPreviousDeadline extends Exception("No previous deadline")
+  case object NoPreviousTime extends Exception("No previous time")
+  case object PreviousIsNotFixedKeyValue extends Exception("Previous is not Fixed key-value")
 
 }

@@ -22,7 +22,7 @@ package swaydb.core.merge
 import org.scalatest.WordSpec
 import swaydb.core.CommonAssertions
 import swaydb.core.data.Memory
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -30,7 +30,7 @@ import scala.concurrent.duration._
 
 class SegmentMerger7_Update_Value_None_None_Into_Put_Spec extends WordSpec with CommonAssertions {
 
-  override implicit val ordering = KeyOrder.default
+  override implicit val keyOrder = KeyOrder.default
   implicit val compression = groupingStrategy
 
   /**

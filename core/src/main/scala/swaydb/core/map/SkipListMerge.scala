@@ -20,19 +20,19 @@
 package swaydb.core.map
 
 import java.util.concurrent.ConcurrentSkipListMap
-
 import scala.annotation.implicitNotFound
 import scala.concurrent.duration.FiniteDuration
+import swaydb.data.order.KeyOrder
 
 @implicitNotFound("Type class implementation not found for SkipListMerge of type [${K}, ${V}]")
 trait SkipListMerge[K, V] {
 
   def insert(insertKey: K,
              insertValue: V,
-             skipList: ConcurrentSkipListMap[K, V])(implicit ordering: Ordering[K])
+             skipList: ConcurrentSkipListMap[K, V])(implicit keyOrder: KeyOrder[K])
 
   def insert(entry: MapEntry[K, V],
-             skipList: ConcurrentSkipListMap[K, V])(implicit ordering: Ordering[K])
+             skipList: ConcurrentSkipListMap[K, V])(implicit keyOrder: KeyOrder[K])
 
   val hasTimeLeftAtLeast: FiniteDuration
 }

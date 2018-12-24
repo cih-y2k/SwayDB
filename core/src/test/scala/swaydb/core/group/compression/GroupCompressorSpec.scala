@@ -23,7 +23,7 @@ import swaydb.compression.CompressionInternal
 import swaydb.core.TestBase
 import swaydb.core.data._
 import swaydb.data.slice.Slice
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -36,7 +36,7 @@ import scala.util.Random
   */
 class GroupCompressorSpec extends TestBase {
 
-  override implicit val ordering: Ordering[Slice[Byte]] = KeyOrder.default
+  override implicit val keyOrder: KeyOrder[Slice[Byte]] = KeyOrder.default
 
   val keyValueCount = 100
 

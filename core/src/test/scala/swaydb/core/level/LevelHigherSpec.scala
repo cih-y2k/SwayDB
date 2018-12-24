@@ -27,7 +27,7 @@ import swaydb.core.util.Benchmark
 import swaydb.core.util.FileUtil._
 import swaydb.data.compaction.Throttle
 import swaydb.data.slice.Slice
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -60,7 +60,7 @@ class LevelHigherSpec3 extends LevelHigherSpec {
 sealed trait LevelHigherSpec extends TestBase with MockFactory with Benchmark {
 
   val keyValuesCount = 100
-  override implicit val ordering: Ordering[Slice[Byte]] = KeyOrder.default
+  override implicit val keyOrder: KeyOrder[Slice[Byte]] = KeyOrder.default
   implicit override val groupingStrategy: Option[KeyValueGroupingStrategyInternal] = randomCompressionTypeOption(keyValuesCount)
 
   "Level.higher when the lower Level is empty" should {

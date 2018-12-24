@@ -42,7 +42,7 @@ import swaydb.data.segment.MaxKey
 import swaydb.data.segment.MaxKey.{Fixed, Range}
 import swaydb.data.slice.Slice
 import swaydb.data.util.StorageUnits._
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -81,7 +81,7 @@ sealed trait SegmentWriteSpec extends TestBase with Benchmark {
   implicit override val groupingStrategy: Option[KeyValueGroupingStrategyInternal] =
     randomCompressionTypeOption(keyValuesCount)
 
-  override implicit val ordering: Ordering[Slice[Byte]] = KeyOrder.default
+  override implicit val keyOrder: KeyOrder[Slice[Byte]] = KeyOrder.default
 
   //  override def deleteFiles = false
 
@@ -590,13 +590,13 @@ sealed trait SegmentWriteSpec extends TestBase with Benchmark {
     } else {
       implicit val segmentOpenLimit = SegmentOpenLimiter(1, 100.millisecond)
       val keyValues = randomizedIntKeyValues(keyValuesCount, addRandomGroups = false)
-      val segment1 = TestSegment(keyValues)(ordering, keyValueLimiterImplicit, segmentOpenLimit).assertGet
+      val segment1 = TestSegment(keyValues)(keyOrder, keyValueLimiterImplicit, segmentOpenLimit).assertGet
 
       segment1.getHeadKeyValueCount().assertGet shouldBe keyValues.size
       segment1.isOpen shouldBe true
 
       //create another segment should close segment 1
-      val segment2 = TestSegment(keyValues)(ordering, keyValueLimiterImplicit, segmentOpenLimit).assertGet
+      val segment2 = TestSegment(keyValues)(keyOrder, keyValueLimiterImplicit, segmentOpenLimit).assertGet
       segment2.getHeadKeyValueCount().assertGet shouldBe keyValues.size
 
       eventual(5.seconds) {
@@ -1164,7 +1164,7 @@ sealed trait SegmentWriteSpec extends TestBase with Benchmark {
         forInMemory = inMemoryStorage,
         bloomFilterFalsePositiveRate = 0.1,
         compressDuplicateValues = true
-      )(ordering, Some(KeyValueGroupingStrategyInternal(DefaultGroupingStrategy()))).assertGet
+      )(keyOrder, Some(KeyValueGroupingStrategyInternal(DefaultGroupingStrategy()))).assertGet
       result should have size 1
       result.head should have size 1
 

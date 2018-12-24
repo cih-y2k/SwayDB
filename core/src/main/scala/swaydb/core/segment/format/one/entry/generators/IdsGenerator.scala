@@ -21,28 +21,28 @@ package swaydb.core.segment.format.one.entry.generators
 
 import java.io.PrintWriter
 import java.nio.file.Paths
-
 import swaydb.core.io.file.IO
-
 import scala.io.Source
+import swaydb.core.segment.format.one.entry.id._
 
 /**
-  * Generates if Ids for all key-value types other than [[swaydb.core.segment.format.one.entry.id.RemoveEntryId]]
-  * which does not contain a value.
+  * Generates if Ids for all key-value types.
   */
 object IdsGenerator extends App {
 
   def write(entry: String,
             key: String,
             startId: Int): Int = {
-    val fullKeyId = s"${entry}Key${key}EntryId"
+    val fullKeyId = s"${entry}${key}AppliedFunctionsEntryId"
     val targetIdClass = IO.createFileIfAbsent(Paths.get(s"${System.getProperty("user.dir")}/core/src/main/scala/swaydb/core/segment/format/one/entry/id/$fullKeyId.scala")).get
     val writer = new PrintWriter(targetIdClass.toFile)
     writer.write("")
 
+    val templateClass = if (entry == "Remove") "TemplateRemoveEntryId" else "TemplateEntryId"
+
     val maxId =
       Source
-        .fromFile(s"${System.getProperty("user.dir")}/core/src/main/scala/swaydb/core/segment/format/one/entry/generators/TemplateEntryId.scala")
+        .fromFile(s"${System.getProperty("user.dir")}/core/src/main/scala/swaydb/core/segment/format/one/entry/id/$templateClass.scala")
         .getLines
         .foldLeft(startId) {
           case (id, line) =>
@@ -50,10 +50,11 @@ object IdsGenerator extends App {
               if (!line.contains("remove this")) {
                 val newLine =
                   line
-                    .replace("package swaydb.core.segment.format.one.entry.generators", "package swaydb.core.segment.format.one.entry.id")
-                    .replace("Key.Uncompressed", s"Key.$key")
-                    .replace("KeyUncompressed", s"Key$key")
-                    .replace("TemplateEntryId", fullKeyId)
+                    //                    .replace("package swaydb.core.segment.format.one.entry.generators", "package swaydb.core.segment.format.one.entry.id")
+                    //                    .replace("Key.Uncompressed", s"Key.$key")
+                    .replace("AppliedFunctions.Empty", s"AppliedFunctions.$key")
+                    .replace("EmptyAppliedFunctions", s"${key}AppliedFunctions")
+                    .replace(templateClass, fullKeyId)
                     .replace(s"-1", s"$id")
                 writer.append("\n" + newLine)
                 newLine
@@ -79,11 +80,35 @@ object IdsGenerator extends App {
     maxId
   }
 
-  def entries = Seq("Put", "Group", "Range", "Update")
-  def keys = Seq("PartiallyCompressed", "Uncompressed", "FullyCompressed")
+  /**
+    * All generated ID classes.
+    */
+  def ids: Seq[GeneratedEntryId] =
+    Seq(
+      PutEmptyAppliedFunctionsEntryId,
+      PutNonEmptyAppliedFunctionsEntryId,
+
+      GroupEmptyAppliedFunctionsEntryId,
+      GroupNonEmptyAppliedFunctionsEntryId,
+
+      RemoveEmptyAppliedFunctionsEntryId,
+      RemoveNonEmptyAppliedFunctionsEntryId,
+
+      UpdateEmptyAppliedFunctionsEntryId,
+      UpdateNonEmptyAppliedFunctionsEntryId,
+
+      RangeEmptyAppliedFunctionsEntryId,
+      RangeNonEmptyAppliedFunctionsEntryId
+    )
+
+  def entries = Seq("Put", "Group", "Remove", "Range", "Update")
+
+  def keys = Seq("Empty", "NonEmpty")
+
+  val minId = 0
 
   def maxKey =
-    entries.foldLeft(30) {
+    entries.foldLeft(minId) {
       case (id, entry) =>
         keys.foldLeft(id) {
           case (id, key) =>
@@ -91,6 +116,8 @@ object IdsGenerator extends App {
         }
     }
 
-  println("maxKey: " + maxKey)
+  println("minId: " + minId)
+  println("maxId: " + maxKey)
+
 }
 

@@ -20,14 +20,13 @@
 package swaydb.core.finders
 
 import java.util.concurrent.ConcurrentSkipListMap
-
 import swaydb.core.data.KeyValue
 import swaydb.core.segment.merge.KeyValueMerger
 import swaydb.data.slice.Slice
-
 import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
+import swaydb.data.order.KeyOrder
 
 object Higher {
 
@@ -37,9 +36,9 @@ object Higher {
   def apply(key: Slice[Byte],
             higherFromCurrentLevel: Slice[Byte] => Try[Option[KeyValue.ReadOnly]],
             get: Slice[Byte] => Try[Option[KeyValue.ReadOnly.Put]],
-            higherInNextLevel: Slice[Byte] => Try[Option[KeyValue.ReadOnly.Put]])(implicit ordering: Ordering[Slice[Byte]]): Try[Option[KeyValue.ReadOnly.Put]] = {
+            higherInNextLevel: Slice[Byte] => Try[Option[KeyValue.ReadOnly.Put]])(implicit keyOrder: KeyOrder[Slice[Byte]]): Try[Option[KeyValue.ReadOnly.Put]] = {
 
-    import ordering._
+    import keyOrder._
 
     //    println(s"${rootPath}: Higher for key: " + key.readInt())
     @tailrec

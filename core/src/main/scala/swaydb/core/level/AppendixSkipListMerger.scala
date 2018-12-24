@@ -20,12 +20,11 @@
 package swaydb.core.level
 
 import java.util.concurrent.ConcurrentSkipListMap
-
 import swaydb.core.map.{MapEntry, SkipListMerge}
 import swaydb.core.segment.Segment
 import swaydb.data.slice.Slice
-
 import scala.concurrent.duration.{FiniteDuration, _}
+import swaydb.data.order.KeyOrder
 
 /**
   * Default [[SkipListMerge]] implementation for Level's Appendix. Currently appendix does not implement
@@ -36,12 +35,12 @@ object AppendixSkipListMerger extends SkipListMerge[Slice[Byte], Segment] {
 
   override def insert(insertKey: Slice[Byte],
                       insertValue: Segment,
-                      skipList: ConcurrentSkipListMap[Slice[Byte], Segment])(implicit ordering: Ordering[Slice[Byte]]): Unit =
+                      skipList: ConcurrentSkipListMap[Slice[Byte], Segment])(implicit keyOrder: KeyOrder[Slice[Byte]]): Unit =
     throw new IllegalAccessException("Appendix does not require merger.")
 
   //Appendixes do not use Range so there will be no conflicts. Need a type-safe way of handling this.
   override def insert(entry: MapEntry[Slice[Byte], Segment],
-                      skipList: ConcurrentSkipListMap[Slice[Byte], Segment])(implicit ordering: Ordering[Slice[Byte]]): Unit =
+                      skipList: ConcurrentSkipListMap[Slice[Byte], Segment])(implicit keyOrder: KeyOrder[Slice[Byte]]): Unit =
     throw new IllegalAccessException("Appendix does not require merger.")
 
 }

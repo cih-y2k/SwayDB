@@ -25,7 +25,7 @@ import swaydb.core.TestBase
 import swaydb.core.data._
 import swaydb.core.group.compression.data.KeyValueGroupingStrategyInternal
 import swaydb.data.slice.Slice
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -63,7 +63,7 @@ class SegmentLowerSpec3 extends SegmentLowerSpec {
 
 sealed trait SegmentLowerSpec extends TestBase with ScalaFutures with PrivateMethodTester {
 
-  override implicit val ordering = KeyOrder.default
+  override implicit val keyOrder = KeyOrder.default
 
   def keyValuesCount: Int
 

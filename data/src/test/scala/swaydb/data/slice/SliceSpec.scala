@@ -20,12 +20,14 @@
 package swaydb.data.slice
 
 import org.scalatest.{Matchers, WordSpec}
+import scala.util.Random
+import swaydb.data.order.KeyOrder
 import swaydb.data.repairAppendix.MaxKey
 import swaydb.data.util.ByteSizeOf
 
-import scala.util.Random
-
 class SliceSpec extends WordSpec with Matchers {
+
+  implicit val keyOrder = KeyOrder.default
 
   def randomByte() = (Random.nextInt(256) - 128).toByte
 
@@ -435,6 +437,7 @@ class SliceSpec extends WordSpec with Matchers {
 
   "within" when {
     implicit def toSlice(int: Int): Slice[Byte] = Slice.writeInt(int)
+
     implicit val order = Ordering.by[Slice[Byte], Int](_.readInt())(Ordering.Int)
 
     "max key is Fixed" in {
@@ -484,5 +487,4 @@ class SliceSpec extends WordSpec with Matchers {
 
     }
   }
-
 }

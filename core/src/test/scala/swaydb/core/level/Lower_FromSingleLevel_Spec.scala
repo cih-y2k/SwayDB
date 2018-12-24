@@ -25,7 +25,7 @@ import swaydb.core.data.{Memory, Value}
 import swaydb.core.group.compression.data.KeyValueGroupingStrategyInternal
 import swaydb.core.util.Benchmark
 import swaydb.data.slice.Slice
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -58,7 +58,7 @@ class Lower_FromSingleLevel_Spec3 extends Lower_FromSingleLevel_Spec {
 
 sealed trait Lower_FromSingleLevel_Spec extends TestBase with MockFactory with Benchmark {
 
-  override implicit val ordering: Ordering[Slice[Byte]] = KeyOrder.default
+  override implicit val keyOrder: KeyOrder[Slice[Byte]] = KeyOrder.default
   val keyValuesCount = 100
   implicit override val groupingStrategy: Option[KeyValueGroupingStrategyInternal] = randomCompressionTypeOption(keyValuesCount)
 

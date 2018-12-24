@@ -27,7 +27,7 @@ import swaydb.core.io.reader.Reader
 import swaydb.core.segment.Segment
 import swaydb.core.segment.SegmentException.SegmentCorruptionException
 import swaydb.data.slice.Slice
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -36,7 +36,7 @@ import scala.util.Random
 
 class SegmentWriterReaderSpec extends TestBase {
 
-  override implicit val ordering = KeyOrder.default
+  implicit val ordering = KeyOrder.default
 
   val keyValueCount = 100
 
@@ -71,7 +71,7 @@ class SegmentWriterReaderSpec extends TestBase {
       test(Slice(Transient.Remove(1, 50.seconds, 0.1)))
       test(Slice(Transient.Update(1, 10)))
 
-      test(Slice(Transient.Range[FromValue, RangeValue](1, 10, None, Value.Remove(None))))
+      test(Slice(Transient.Range[FromValue, RangeValue](1, 10, None, Value.Remove(randomDeadlineOption))))
       test(Slice(Transient.Range[FromValue, RangeValue](1, 10, Some(Value.Remove(None)), Value.Remove(None))))
       test(Slice(Transient.Range[FromValue, RangeValue](1, 10, Some(Value.Put(1)), Value.Remove(None))))
       test(Slice(Transient.Range[FromValue, RangeValue](1, 10, None, Value.Update(1))))

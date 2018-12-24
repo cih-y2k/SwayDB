@@ -19,12 +19,11 @@
 
 package swaydb.core.segment.format.one.entry.reader.matchers
 
+import scala.util.Try
 import swaydb.core.data.Persistent
 import swaydb.core.segment.format.one.entry.id.EntryId
 import swaydb.core.segment.format.one.entry.reader._
 import swaydb.data.slice.Reader
-
-import scala.util.Try
 
 object UpdateReader {
 

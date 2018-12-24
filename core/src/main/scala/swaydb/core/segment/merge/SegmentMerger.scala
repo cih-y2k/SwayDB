@@ -20,6 +20,10 @@
 package swaydb.core.segment.merge
 
 import com.typesafe.scalalogging.LazyLogging
+import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
+import scala.concurrent.duration._
+import scala.util.{Failure, Success, Try}
 import swaydb.core.data.KeyValue.ReadOnly
 import swaydb.core.data.{Memory, Persistent, Value, _}
 import swaydb.core.group.compression.data.KeyValueGroupingStrategyInternal
@@ -28,12 +32,8 @@ import swaydb.core.segment.merge.KeyValueMerger._
 import swaydb.core.util.SliceUtil._
 import swaydb.core.util.TryUtil._
 import swaydb.data.slice.Slice
+import swaydb.data.order.KeyOrder
 import swaydb.data.util.StorageUnits._
-
-import scala.annotation.tailrec
-import scala.collection.mutable.ListBuffer
-import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
 
 private[core] object SegmentMerger extends LazyLogging {
   implicit val keyValueLimiter = KeyValueLimiter.none
@@ -104,7 +104,7 @@ private[core] object SegmentMerger extends LazyLogging {
             isLastLevel: Boolean,
             forInMemory: Boolean,
             bloomFilterFalsePositiveRate: Double,
-            compressDuplicateValues: Boolean)(implicit ordering: Ordering[Slice[Byte]],
+            compressDuplicateValues: Boolean)(implicit keyOrder: KeyOrder[Slice[Byte]],
                                               groupingStrategy: Option[KeyValueGroupingStrategyInternal]): Try[Iterable[Iterable[KeyValue.WriteOnly]]] = {
     val splits = ListBuffer[ListBuffer[KeyValue.WriteOnly]](ListBuffer())
     keyValues tryForeach {
@@ -139,7 +139,7 @@ private[core] object SegmentMerger extends LazyLogging {
     */
   def merge(newKeyValues: Slice[Memory.SegmentResponse],
             oldKeyValues: Slice[Memory.SegmentResponse],
-            hasTimeLeftAtLeast: FiniteDuration)(implicit ordering: Ordering[Slice[Byte]],
+            hasTimeLeftAtLeast: FiniteDuration)(implicit keyOrder: KeyOrder[Slice[Byte]],
                                                 groupingStrategy: Option[KeyValueGroupingStrategyInternal]): ListBuffer[KeyValue.WriteOnly] =
     merge(
       newKeyValues = newKeyValues,
@@ -154,7 +154,7 @@ private[core] object SegmentMerger extends LazyLogging {
 
   def merge(newKeyValue: Memory.SegmentResponse,
             oldKeyValue: Memory.SegmentResponse,
-            hasTimeLeftAtLeast: FiniteDuration)(implicit ordering: Ordering[Slice[Byte]],
+            hasTimeLeftAtLeast: FiniteDuration)(implicit keyOrder: KeyOrder[Slice[Byte]],
                                                 groupingStrategy: Option[KeyValueGroupingStrategyInternal]): ListBuffer[KeyValue.WriteOnly] =
     merge(
       newKeyValues = Slice(newKeyValue),
@@ -174,7 +174,7 @@ private[core] object SegmentMerger extends LazyLogging {
             forInMemory: Boolean,
             bloomFilterFalsePositiveRate: Double,
             hasTimeLeftAtLeast: FiniteDuration,
-            compressDuplicateValues: Boolean)(implicit ordering: Ordering[Slice[Byte]],
+            compressDuplicateValues: Boolean)(implicit keyOrder: KeyOrder[Slice[Byte]],
                                               groupingStrategy: Option[KeyValueGroupingStrategyInternal]): Try[Iterable[Iterable[KeyValue.WriteOnly]]] =
     merge(
       newKeyValues = MergeList(newKeyValues),
@@ -204,9 +204,9 @@ private[core] object SegmentMerger extends LazyLogging {
                     forInMemory: Boolean,
                     bloomFilterFalsePositiveRate: Double,
                     hasTimeLeftAtLeast: FiniteDuration,
-                    compressDuplicateValues: Boolean)(implicit ordering: Ordering[Slice[Byte]],
+                    compressDuplicateValues: Boolean)(implicit keyOrder: KeyOrder[Slice[Byte]],
                                                       groupingStrategy: Option[KeyValueGroupingStrategyInternal]): Try[ListBuffer[ListBuffer[KeyValue.WriteOnly]]] = {
-    import ordering._
+    import keyOrder._
 
     def add(nextKeyValue: KeyValue.ReadOnly): Try[Unit] =
       SegmentGrouper.addKeyValue(
@@ -321,12 +321,6 @@ private[core] object SegmentMerger extends LazyLogging {
             }
           else //is in-range key
             newRangeKeyValue.fetchFromAndRangeValue match {
-              case Success((None | Some(Value.Remove(None)) | Some(_: Value.Put), Value.Remove(None))) => //if input is remove range, drop old key-value
-                doMerge(newKeyValues, oldKeyValues.dropHead())
-
-              case Success((_, Value.Remove(None))) if newRangeKeyValue.fromKey != oldKeyValue.key => //if input is remove range, drop old key-value
-                doMerge(newKeyValues, oldKeyValues.dropHead())
-
               case Success((newRangeFromValue, newRangeRangeValue)) if newRangeKeyValue.fromKey equiv oldKeyValue.key =>
                 applyValue(newRangeFromValue.getOrElse(newRangeRangeValue), oldKeyValue, hasTimeLeftAtLeast = hasTimeLeftAtLeast) match {
                   case Success(newFromValue) =>
@@ -623,7 +617,8 @@ private[core] object SegmentMerger extends LazyLogging {
           else
           //Open the Group and merge.
             newRangeKeyValue.fetchFromAndRangeValue match {
-              //Case when the Remove range completely overlaps the group, there is no need to open the group. Simply remove the Group.
+              //Cases when the Remove range completely overlaps the group and there is no time set for
+              //both fromValue & RangeValue then there is no need to open the group. Simply remove the Group.
               case Success((None | Some(Value.Remove(None)), Value.Remove(None))) if newRangeKeyValue.fromKey <= oldGroupKeyValue.minKey && oldGroupKeyValue.maxKey.maxKey < newRangeKeyValue.toKey =>
                 doMerge(newKeyValues, oldKeyValues.dropHead())
 

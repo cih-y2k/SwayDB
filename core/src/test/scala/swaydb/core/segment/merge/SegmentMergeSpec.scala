@@ -26,20 +26,20 @@ import swaydb.core.map.serializer.RangeValueSerializers._
 import swaydb.core.util.Benchmark
 import swaydb.data.slice.Slice
 import swaydb.data.util.StorageUnits._
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
-
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
+import swaydb.core.segment.format.one.entry.generators.GeneratorCallWarmUp
 
 class SegmentMergeSpec extends TestBase {
 
-  override implicit val ordering = KeyOrder.default
+  implicit val ordering = KeyOrder.default
   implicit val compression = groupingStrategy
   val keyValueCount = 100
 
-  import ordering._
+  import keyOrder._
 
   "SegmentMerger.completeMerge" should {
 
@@ -178,7 +178,6 @@ class SegmentMergeSpec extends TestBase {
       mergeResultWithGroup should have size 1
 
       mergeResultWithoutGroup.head shouldBe mergeResultWithGroup.head
-
     }
   }
 

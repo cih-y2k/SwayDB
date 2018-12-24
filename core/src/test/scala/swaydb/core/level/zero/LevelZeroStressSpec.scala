@@ -22,7 +22,7 @@ package swaydb.core.level.zero
 import swaydb.core.TestBase
 import swaydb.core.util.{Benchmark, Delay}
 import swaydb.data.slice.Slice
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 
 import scala.concurrent.Future
@@ -55,7 +55,7 @@ class LevelZeroStressSpec3 extends LevelZeroStressSpec {
 
 sealed trait LevelZeroStressSpec extends TestBase with Benchmark {
 
-  override implicit val ordering: Ordering[Slice[Byte]] = KeyOrder.default
+  override implicit val keyOrder: KeyOrder[Slice[Byte]] = KeyOrder.default
 
 //  override def deleteFiles = false
 

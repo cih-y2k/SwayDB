@@ -24,7 +24,7 @@ import swaydb.core.CommonAssertions
 import swaydb.core.io.reader.Reader
 import swaydb.core.segment.format.one.entry.reader.EntryReader
 import swaydb.data.slice.Slice
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 
 class GroupEntryReaderWriterSpec extends WordSpec with CommonAssertions {
 
@@ -43,7 +43,7 @@ class GroupEntryReaderWriterSpec extends WordSpec with CommonAssertions {
 
   "write and read Group entries with other entries" in {
     runThis(1000.times) {
-      val keyValues = randomizedIntKeyValues(count = 1, addRandomGroups = false)
+      val keyValues = randomizedIntKeyValues(count = 1, addRandomGroups = false, addRandomTimes = true)
       val previous = keyValues.head
 
       val next = randomGroup().updateStats(0.1, previous = Some(previous))

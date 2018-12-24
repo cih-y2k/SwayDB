@@ -29,7 +29,7 @@ import swaydb.core.map.serializer.RangeValueSerializers._
 import swaydb.core.util.FileUtil._
 import swaydb.core.util.PipeOps._
 import swaydb.data.slice.Slice
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -69,7 +69,7 @@ class SegmentAssignerSpec3 extends SegmentAssignerSpec {
 //@formatter:on
 
 sealed trait SegmentAssignerSpec extends TestBase {
-  override implicit val ordering = KeyOrder.default
+  override implicit val keyOrder = KeyOrder.default
 
   def keyValueCount: Int
 

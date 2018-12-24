@@ -25,14 +25,14 @@ import swaydb.core.group.compression.data.{GroupGroupingStrategyInternal, KeyVal
 import swaydb.core.util.Benchmark
 import swaydb.data.slice.Slice
 import swaydb.data.util.StorageUnits._
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 
 import scala.concurrent.duration._
 import scala.util.Random
 
 class SegmentMergeStressSpec extends TestBase {
 
-  override implicit val ordering = KeyOrder.default
+  override implicit val keyOrder = KeyOrder.default
 
   val keyValueCount = 100
   val maxIteration = 5
@@ -48,7 +48,7 @@ class SegmentMergeStressSpec extends TestBase {
         case (oldKeyValues, index) =>
           println(s"Iteration: $index/$maxIteration")
 
-          val newKeyValues = randomizedIntKeyValues(count = keyValueCount, startId = Some(index * 200), addRandomGroups = Random.nextBoolean())
+          val newKeyValues = randomizedIntKeyValues(count = keyValueCount, startId = Some(index * 200))
 
           val groupGroupingStrategy =
             if (Random.nextBoolean())

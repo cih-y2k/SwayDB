@@ -23,8 +23,8 @@ import swaydb.core.data.Persistent
 import swaydb.core.segment.format.one.entry.id.EntryId
 import swaydb.core.segment.format.one.entry.reader._
 import swaydb.data.slice.{Reader, Slice}
-
 import scala.util.Try
+import swaydb.data.order.KeyOrder
 
 object GroupReader {
 
@@ -39,7 +39,7 @@ object GroupReader {
                                                          valueOffsetReader: ValueOffsetReader[T],
                                                          valueLengthReader: ValueLengthReader[T],
                                                          valueBytesReader: ValueReader[T],
-                                                         ordering: Ordering[Slice[Byte]]): Try[Persistent.Group] =
+                                                         keyOrder: KeyOrder[Slice[Byte]]): Try[Persistent.Group] =
     deadlineReader.read(indexReader, previous) flatMap {
       deadline =>
         valueBytesReader.read(indexReader, previous) flatMap {

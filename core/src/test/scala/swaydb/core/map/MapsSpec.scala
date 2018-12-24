@@ -30,7 +30,7 @@ import swaydb.data.accelerate.Accelerator
 import swaydb.data.config.RecoveryMode
 import swaydb.data.slice.Slice
 import swaydb.data.util.StorageUnits._
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 
@@ -39,7 +39,7 @@ import scala.concurrent.duration._
 
 class MapsSpec extends TestBase {
 
-  override implicit val ordering = KeyOrder.default
+  override implicit val keyOrder = KeyOrder.default
 
   import swaydb.core.map.serializer.LevelZeroMapEntryReader._
   import swaydb.core.map.serializer.LevelZeroMapEntryWriter._

@@ -29,7 +29,7 @@ import swaydb.core.util.PipeOps._
 import swaydb.data.compaction.{LevelMeter, Throttle}
 import swaydb.data.slice.Slice
 import swaydb.data.util.StorageUnits._
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 import swaydb.core.map.serializer.RangeValueSerializers._
@@ -62,7 +62,7 @@ class LevelReadSpec3 extends LevelReadSpec {
 
 sealed trait LevelReadSpec extends TestBase with MockFactory with Benchmark {
 
-  override implicit val ordering: Ordering[Slice[Byte]] = KeyOrder.default
+  override implicit val keyOrder: KeyOrder[Slice[Byte]] = KeyOrder.default
   implicit override val groupingStrategy: Option[KeyValueGroupingStrategyInternal] = randomCompressionTypeOption(keyValuesCount)
   val keyValuesCount = 100
 

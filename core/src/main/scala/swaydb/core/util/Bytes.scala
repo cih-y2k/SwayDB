@@ -188,3 +188,14 @@ private[swaydb] object Bytes {
         }
     }
 }
+
+object Test extends App {
+
+  (15000 to 100000) foreach {
+    i =>
+      if (Bytes.sizeOf(i) > 2) {
+        println(i)
+        System.exit(0)
+      }
+  }
+}

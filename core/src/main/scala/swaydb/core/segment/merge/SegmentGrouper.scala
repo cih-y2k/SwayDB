@@ -28,10 +28,10 @@ import swaydb.core.queue.KeyValueLimiter
 import swaydb.core.util.TryUtil
 import swaydb.core.util.TryUtil._
 import swaydb.data.slice.Slice
-
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
+import swaydb.data.order.KeyOrder
 
 /**
   * SegmentGroups will always group key-values with Groups at the head of key-value List. Groups cannot be randomly
@@ -253,7 +253,7 @@ private[merge] object SegmentGrouper extends LazyLogging {
                    isLastLevel: Boolean,
                    bloomFilterFalsePositiveRate: Double,
                    compressDuplicateValues: Boolean)(implicit groupingStrategy: Option[KeyValueGroupingStrategyInternal],
-                                                     ordering: Ordering[Slice[Byte]]): Try[Unit] =
+                                                     keyOrder: KeyOrder[Slice[Byte]]): Try[Unit] =
     keyValues.headOption match {
       case Some(keyValue) =>
         keyValue match {
@@ -309,7 +309,7 @@ private[merge] object SegmentGrouper extends LazyLogging {
                   isLastLevel: Boolean,
                   bloomFilterFalsePositiveRate: Double,
                   compressDuplicateValues: Boolean)(implicit groupingStrategy: Option[KeyValueGroupingStrategyInternal],
-                                                    ordering: Ordering[Slice[Byte]]): Try[Unit] = {
+                                                    keyOrder: KeyOrder[Slice[Byte]]): Try[Unit] = {
 
     def doAdd(keyValueToAdd: Option[KeyValue.WriteOnly] => KeyValue.WriteOnly): Try[Unit] = {
 
@@ -383,7 +383,7 @@ private[merge] object SegmentGrouper extends LazyLogging {
         }
     }
 
-    try {
+    Catch {
       keyValueToAdd match {
         case fixed: KeyValue.ReadOnly.Fixed =>
           if (isLastLevel && fixed.isOverdue())
@@ -391,23 +391,57 @@ private[merge] object SegmentGrouper extends LazyLogging {
           else
             fixed match {
               case Memory.Put(key, value, deadline) =>
-                doAdd(Transient.Put(key, value, bloomFilterFalsePositiveRate, _, deadline, compressDuplicateValues))
+                doAdd(
+                  Transient.Put(
+                    key = key,
+                    value = value,
+                    deadline = deadline,
+                    _,
+                    falsePositiveRate = bloomFilterFalsePositiveRate,
+                    compressDuplicateValues = compressDuplicateValues
+                  )
+                )
 
               case put: Persistent.Put =>
                 put.getOrFetchValue flatMap {
                   value =>
-                    doAdd(Transient.Put(put.key, value, bloomFilterFalsePositiveRate, _, put.deadline, compressDuplicateValues))
+                    doAdd(
+                      Transient.Put(
+                        key = put.key,
+                        value = value,
+                        deadline = put.deadline,
+                        _,
+                        falsePositiveRate = bloomFilterFalsePositiveRate,
+                        compressDuplicateValues = compressDuplicateValues
+                      )
+                    )
                 }
 
               case remove @ (_: Memory.Remove | _: Persistent.Remove) =>
                 if (!isLastLevel)
-                  doAdd(Transient.Remove(keyValueToAdd.key, bloomFilterFalsePositiveRate, _, remove.deadline))
+                  doAdd(
+                    Transient.Remove(
+                      key = keyValueToAdd.key,
+                      deadline = remove.deadline,
+                      _,
+                      falsePositiveRate = bloomFilterFalsePositiveRate
+                    )
+                  )
                 else
                   TryUtil.successUnit
 
               case Memory.Update(key, value, deadline) =>
                 if (!isLastLevel)
-                  doAdd(Transient.Update(key, value, bloomFilterFalsePositiveRate, _, deadline, compressDuplicateValues))
+                  doAdd(
+                    Transient.Update(
+                      key = key,
+                      value = value,
+                      deadline = deadline,
+                      _,
+                      falsePositiveRate = bloomFilterFalsePositiveRate,
+                      compressDuplicateValues = compressDuplicateValues
+                    )
+                  )
                 else
                   TryUtil.successUnit
 
@@ -415,7 +449,16 @@ private[merge] object SegmentGrouper extends LazyLogging {
                 if (!isLastLevel)
                   update.getOrFetchValue flatMap {
                     value =>
-                      doAdd(Transient.Update(update.key, value, bloomFilterFalsePositiveRate, _, update.deadline, compressDuplicateValues))
+                      doAdd(
+                        Transient.Update(
+                          key = update.key,
+                          value = value,
+                          deadline = update.deadline,
+                          _,
+                          falsePositiveRate = bloomFilterFalsePositiveRate,
+                          compressDuplicateValues = compressDuplicateValues
+                        )
+                      )
                   }
                 else
                   TryUtil.successUnit
@@ -430,7 +473,16 @@ private[merge] object SegmentGrouper extends LazyLogging {
                     fromValue match {
                       case put @ Value.Put(fromValue, deadline) =>
                         if (put.hasTimeLeft())
-                          doAdd(Transient.Put(range.fromKey, fromValue, bloomFilterFalsePositiveRate, _, deadline, compressDuplicateValues))
+                          doAdd(
+                            Transient.Put(
+                              key = range.fromKey,
+                              value = fromValue,
+                              deadline = deadline,
+                              _,
+                              falsePositiveRate = bloomFilterFalsePositiveRate,
+                              compressDuplicateValues = compressDuplicateValues
+                            )
+                          )
                         else
                           TryUtil.successUnit
 
@@ -446,7 +498,16 @@ private[merge] object SegmentGrouper extends LazyLogging {
           else
             range.fetchFromAndRangeValue flatMap {
               case (fromValue, rangeValue) =>
-                doAdd(Transient.Range(range.fromKey, range.toKey, fromValue, rangeValue, bloomFilterFalsePositiveRate, _))
+                doAdd(
+                  Transient.Range(
+                    fromKey = range.fromKey,
+                    toKey = range.toKey,
+                    fromValue = fromValue,
+                    rangeValue = rangeValue,
+                    falsePositiveRate = bloomFilterFalsePositiveRate,
+                    _
+                  )
+                )
             }
 
         case group: KeyValue.ReadOnly.Group =>
@@ -463,9 +524,6 @@ private[merge] object SegmentGrouper extends LazyLogging {
               )
           }
       }
-    } catch {
-      case ex: Throwable =>
-        Failure(ex)
     }
   }
 }

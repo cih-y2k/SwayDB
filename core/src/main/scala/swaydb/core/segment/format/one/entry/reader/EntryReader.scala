@@ -24,8 +24,8 @@ import swaydb.core.segment.SegmentException
 import swaydb.core.segment.format.one.entry.id._
 import swaydb.core.segment.format.one.entry.reader.matchers._
 import swaydb.data.slice.{Reader, Slice}
-
 import scala.util.{Failure, Try}
+import swaydb.data.order.KeyOrder
 
 object EntryReader {
 
@@ -34,177 +34,205 @@ object EntryReader {
            indexOffset: Int,
            nextIndexOffset: Int,
            nextIndexSize: Int,
-           previous: Option[Persistent])(implicit ordering: Ordering[Slice[Byte]]): Try[Persistent] =
+           previous: Option[Persistent])(implicit keyOrder: KeyOrder[Slice[Byte]]): Try[Persistent] =
     indexReader.readIntUnsigned() flatMap {
       id =>
-        PutKeyPartiallyCompressedEntryId.contains(id) map {
-          id =>
-            PutKeyPartiallyCompressedReader.read(
-              id = id,
-              indexReader = indexReader,
-              valueReader = valueReader,
-              indexOffset = indexOffset,
-              nextIndexOffset = nextIndexOffset,
-              nextIndexSize = nextIndexSize,
-              previous = previous
-            )
-        } orElse {
-          PutKeyUncompressedEntryId.contains(id) map {
-            id =>
-              PutKeyUncompressedReader.read(
-                id = id,
-                indexReader = indexReader,
-                valueReader = valueReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              )
-          }
-        } orElse {
-          PutKeyFullyCompressedEntryId.contains(id) map {
-            id =>
-              PutKeyFullyCompressedReader.read(
-                id = id,
-                indexReader = indexReader,
-                valueReader = valueReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              )
-          }
-        } orElse {
-          GroupKeyPartiallyCompressedEntryId.contains(id) map {
-            id =>
-              GroupKeyPartiallyCompressedReader.read(
-                id = id,
-                indexReader = indexReader,
-                valueReader = valueReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              )
-          }
-        } orElse {
-          GroupKeyUncompressedEntryId.contains(id) map {
-            id =>
-              GroupKeyUncompressedReader.read(
-                id = id,
-                indexReader = indexReader,
-                valueReader = valueReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              )
-          }
-        } orElse {
-          GroupKeyFullyCompressedEntryId.contains(id) map {
-            id =>
-              GroupKeyFullyCompressedReader.read(
-                id = id,
-                indexReader = indexReader,
-                valueReader = valueReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              )
-          }
-        } orElse {
-          UpdateKeyPartiallyCompressedEntryId.contains(id) map {
-            id =>
-              UpdateKeyPartiallyCompressedReader.read(
-                id = id,
-                indexReader = indexReader,
-                valueReader = valueReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              )
-          }
-        } orElse {
-          UpdateKeyUncompressedEntryId.contains(id) map {
-            id =>
-              UpdateKeyUncompressedReader.read(
-                id = id,
-                indexReader = indexReader,
-                valueReader = valueReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              )
-          }
-        } orElse {
-          UpdateKeyFullyCompressedEntryId.contains(id) map {
-            id =>
-              UpdateKeyFullyCompressedReader.read(
-                id = id,
-                indexReader = indexReader,
-                valueReader = valueReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              )
-          }
-        } orElse {
-          RemoveEntryId.contains(id) map {
-            id =>
-              RemoveReader.read(
-                id = id,
-                indexReader = indexReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              )
-          }
-        } orElse {
-          RangeKeyPartiallyCompressedEntryId.contains(id) map {
-            id =>
-              RangeKeyPartiallyCompressedReader.read(
-                id = id,
-                indexReader = indexReader,
-                valueReader = valueReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              )
-          }
-        } orElse {
-          RangeKeyUncompressedEntryId.contains(id) map {
-            id =>
-              RangeKeyUncompressedReader.read(
-                id = id,
-                indexReader = indexReader,
-                valueReader = valueReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              )
-          }
-        } orElse {
-          RangeKeyFullyCompressedEntryId.contains(id) map {
-            id =>
-              RangeKeyFullyCompressedReader.read(
-                id = id,
-                indexReader = indexReader,
-                valueReader = valueReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              )
-          }
-        } getOrElse {
-          Failure(SegmentException.InvalidEntryId(id))
-        }
+//        PutKeyPartiallyCompressedEntryId.contains(id) map {
+//          id =>
+//            PutKeyPartiallyCompressedReader.read(
+//              id = id,
+//              indexReader = indexReader,
+//              valueReader = valueReader,
+//              indexOffset = indexOffset,
+//              nextIndexOffset = nextIndexOffset,
+//              nextIndexSize = nextIndexSize,
+//              previous = previous
+//            )
+//        } orElse {
+//          PutKeyUncompressedEntryId.contains(id) map {
+//            id =>
+//              PutKeyUncompressedReader.read(
+//                id = id,
+//                indexReader = indexReader,
+//                valueReader = valueReader,
+//                indexOffset = indexOffset,
+//                nextIndexOffset = nextIndexOffset,
+//                nextIndexSize = nextIndexSize,
+//                previous = previous
+//              )
+//          }
+//        } orElse {
+//          PutKeyFullyCompressedEntryId.contains(id) map {
+//            id =>
+//              PutKeyFullyCompressedReader.read(
+//                id = id,
+//                indexReader = indexReader,
+//                valueReader = valueReader,
+//                indexOffset = indexOffset,
+//                nextIndexOffset = nextIndexOffset,
+//                nextIndexSize = nextIndexSize,
+//                previous = previous
+//              )
+//          }
+//        } orElse {
+//          GroupKeyPartiallyCompressedEntryId.contains(id) map {
+//            id =>
+//              GroupKeyPartiallyCompressedReader.read(
+//                id = id,
+//                indexReader = indexReader,
+//                valueReader = valueReader,
+//                indexOffset = indexOffset,
+//                nextIndexOffset = nextIndexOffset,
+//                nextIndexSize = nextIndexSize,
+//                previous = previous
+//              )
+//          }
+//        } orElse {
+//          GroupKeyUncompressedEntryId.contains(id) map {
+//            id =>
+//              GroupKeyUncompressedReader.read(
+//                id = id,
+//                indexReader = indexReader,
+//                valueReader = valueReader,
+//                indexOffset = indexOffset,
+//                nextIndexOffset = nextIndexOffset,
+//                nextIndexSize = nextIndexSize,
+//                previous = previous
+//              )
+//          }
+//        } orElse {
+//          GroupKeyFullyCompressedEntryId.contains(id) map {
+//            id =>
+//              GroupKeyFullyCompressedReader.read(
+//                id = id,
+//                indexReader = indexReader,
+//                valueReader = valueReader,
+//                indexOffset = indexOffset,
+//                nextIndexOffset = nextIndexOffset,
+//                nextIndexSize = nextIndexSize,
+//                previous = previous
+//              )
+//          }
+//        } orElse {
+//          UpdateKeyPartiallyCompressedEntryId.contains(id) map {
+//            id =>
+//              UpdateKeyPartiallyCompressedReader.read(
+//                id = id,
+//                indexReader = indexReader,
+//                valueReader = valueReader,
+//                indexOffset = indexOffset,
+//                nextIndexOffset = nextIndexOffset,
+//                nextIndexSize = nextIndexSize,
+//                previous = previous
+//              )
+//          }
+//        } orElse {
+//          UpdateKeyUncompressedEntryId.contains(id) map {
+//            id =>
+//              UpdateKeyUncompressedReader.read(
+//                id = id,
+//                indexReader = indexReader,
+//                valueReader = valueReader,
+//                indexOffset = indexOffset,
+//                nextIndexOffset = nextIndexOffset,
+//                nextIndexSize = nextIndexSize,
+//                previous = previous
+//              )
+//          }
+//        } orElse {
+//          UpdateKeyFullyCompressedEntryId.contains(id) map {
+//            id =>
+//              UpdateKeyFullyCompressedReader.read(
+//                id = id,
+//                indexReader = indexReader,
+//                valueReader = valueReader,
+//                indexOffset = indexOffset,
+//                nextIndexOffset = nextIndexOffset,
+//                nextIndexSize = nextIndexSize,
+//                previous = previous
+//              )
+//          }
+//        } orElse {
+//          RemoveKeyPartiallyCompressedEntryId.contains(id) map {
+//            id =>
+//              RemoveKeyPartiallyCompressedReader.read(
+//                id = id,
+//                indexReader = indexReader,
+//                valueReader = valueReader,
+//                indexOffset = indexOffset,
+//                nextIndexOffset = nextIndexOffset,
+//                nextIndexSize = nextIndexSize,
+//                previous = previous
+//              )
+//          }
+//        } orElse {
+//          RemoveKeyUncompressedEntryId.contains(id) map {
+//            id =>
+//              RemoveKeyUncompressedReader.read(
+//                id = id,
+//                indexReader = indexReader,
+//                valueReader = valueReader,
+//                indexOffset = indexOffset,
+//                nextIndexOffset = nextIndexOffset,
+//                nextIndexSize = nextIndexSize,
+//                previous = previous
+//              )
+//          }
+//        } orElse {
+//          RemoveKeyFullyCompressedEntryId.contains(id) map {
+//            id =>
+//              RemoveKeyFullyCompressedReader.read(
+//                id = id,
+//                indexReader = indexReader,
+//                valueReader = valueReader,
+//                indexOffset = indexOffset,
+//                nextIndexOffset = nextIndexOffset,
+//                nextIndexSize = nextIndexSize,
+//                previous = previous
+//              )
+//          }
+//        } orElse {
+//          RangeKeyPartiallyCompressedEntryId.contains(id) map {
+//            id =>
+//              RangeKeyPartiallyCompressedReader.read(
+//                id = id,
+//                indexReader = indexReader,
+//                valueReader = valueReader,
+//                indexOffset = indexOffset,
+//                nextIndexOffset = nextIndexOffset,
+//                nextIndexSize = nextIndexSize,
+//                previous = previous
+//              )
+//          }
+//        } orElse {
+//          RangeKeyUncompressedEntryId.contains(id) map {
+//            id =>
+//              RangeKeyUncompressedReader.read(
+//                id = id,
+//                indexReader = indexReader,
+//                valueReader = valueReader,
+//                indexOffset = indexOffset,
+//                nextIndexOffset = nextIndexOffset,
+//                nextIndexSize = nextIndexSize,
+//                previous = previous
+//              )
+//          }
+//        } orElse {
+//          RangeKeyFullyCompressedEntryId.contains(id) map {
+//            id =>
+//              RangeKeyFullyCompressedReader.read(
+//                id = id,
+//                indexReader = indexReader,
+//                valueReader = valueReader,
+//                indexOffset = indexOffset,
+//                nextIndexOffset = nextIndexOffset,
+//                nextIndexSize = nextIndexSize,
+//                previous = previous
+//              )
+//          }
+//        } getOrElse {
+//          Failure(SegmentException.InvalidEntryId(id))
+//        }
+        ???
     }
 }

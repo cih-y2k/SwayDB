@@ -20,48 +20,51 @@
 package swaydb.core.segment.format.one.entry.writer
 
 import swaydb.core.data.Transient
-import swaydb.core.segment.format.one.entry.id.RemoveEntryId
 import swaydb.core.util.Bytes._
 import swaydb.data.slice.Slice
 
 object RemoveEntryWriter {
 
-  def write(keyValue: Transient.Remove): Slice[Byte] =
-    keyValue.previous flatMap {
-      previous =>
-        compress(key = keyValue.key, previous = previous, minimumCommonBytes = 2) map {
-          case (_, remainingBytes) if remainingBytes.isEmpty =>
-            val indexBytes =
-              DeadlineWriter.write(
-                current = keyValue,
-                getDeadlineId = RemoveEntryId.KeyFullyCompressed.NoValue,
-                plusSize = sizeOf(keyValue.key.size)
-              ).addIntUnsigned(keyValue.key.size)
-
-            assert(indexBytes.isFull, s"indexSlice is not full actual: ${indexBytes.written} - expected: ${indexBytes.size}")
-            indexBytes
-
-          case (commonBytes, remainingBytes) =>
-            val indexBytes =
-              DeadlineWriter.write(
-                current = keyValue,
-                getDeadlineId = RemoveEntryId.KeyPartiallyCompressed.NoValue,
-                plusSize = sizeOf(commonBytes) + remainingBytes.size //write the size of keys compressed and also the uncompressed Bytes
-              ).addIntUnsigned(commonBytes)
-                .addAll(remainingBytes)
-            assert(indexBytes.isFull, s"indexSlice is not full actual: ${indexBytes.written} - expected: ${indexBytes.size}")
-            indexBytes
-        }
-    } getOrElse {
-      //no common prefixes or no previous write without compression
-      val indexBytes =
-        DeadlineWriter.write(
-          current = keyValue,
-          getDeadlineId = RemoveEntryId.KeyUncompressed.NoValue,
-          plusSize = keyValue.key.size //write key bytes
-        ).addAll(keyValue.key)
-      assert(indexBytes.isFull, s"indexSlice is not full actual: ${indexBytes.written} - expected: ${indexBytes.size}")
-      indexBytes
-    }
-
+  /**
+    * @return indexEntry, valueBytes, valueOffsetBytes, nextValuesOffsetPosition
+    */
+  def write(current: Transient.Remove): (Slice[Byte], Option[Slice[Byte]], Int, Int) =
+//    current.previous flatMap {
+//      previous =>
+//        compress(key = current.key, previous = previous, minimumCommonBytes = 2) map {
+//          case (_, remainingBytes) if remainingBytes.isEmpty =>
+//            val (indexBytes, valueBytes, valueStartOffset, valueEndOffset) =
+//              ValueWriter.write(
+//                current = current,
+//                compressDuplicateValues = false,
+//                id = RemoveKeyFullyCompressedEntryId.KeyFullyCompressed,
+//                plusSize = sizeOf(current.key.size) //write the size of keys that were compressed.
+//              )
+//
+//            //            assert(indexBytes.isFull, s"indexSlice is not full actual: ${indexBytes.written} - expected: ${indexBytes.size}")
+//            //            valueBytes foreach (valueBytes => assert(valueBytes.isFull, s"valueBytes is not full actual: ${valueBytes.written} - expected: ${valueBytes.size}"))
+//            (indexBytes.addIntUnsigned(current.key.size), valueBytes, valueStartOffset, valueEndOffset)
+//
+//          case (commonBytes, remainingBytes) =>
+//            val (indexBytes, valueBytes, valueStartOffset, valueEndOffset) =
+//              ValueWriter.write(
+//                current = current,
+//                compressDuplicateValues = false,
+//                id = RemoveKeyPartiallyCompressedEntryId.KeyPartiallyCompressed,
+//                plusSize = sizeOf(commonBytes) + remainingBytes.size //write the size of keys compressed and also the uncompressed Bytes
+//              )
+//            (indexBytes.addIntUnsigned(commonBytes).addAll(remainingBytes), valueBytes, valueStartOffset, valueEndOffset)
+//        }
+//    } getOrElse {
+//      //no common prefixes or no previous write without compression
+//      val (indexBytes, valueBytes, valueStartOffset, valueEndOffset) =
+//        ValueWriter.write(
+//          current = current,
+//          compressDuplicateValues = false,
+//          id = RemoveKeyUncompressedEntryId.KeyUncompressed,
+//          plusSize = current.key.size //write key bytes.
+//        )
+//      (indexBytes.addAll(current.key), valueBytes, valueStartOffset, valueEndOffset)
+//    }
+  ???
 }

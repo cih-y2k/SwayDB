@@ -24,7 +24,7 @@ import swaydb.core.CommonAssertions
 import swaydb.core.data.{Memory, Transient, Value}
 import swaydb.core.segment.merge.SegmentMerger
 import swaydb.data.slice.Slice
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
 

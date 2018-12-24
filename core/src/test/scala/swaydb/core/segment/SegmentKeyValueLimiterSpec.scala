@@ -29,7 +29,7 @@ import swaydb.core.util._
 import swaydb.core.{TestBase, TestLimitQueues}
 import swaydb.data.slice.Slice
 import swaydb.data.util.StorageUnits._
-import swaydb.order.KeyOrder
+import swaydb.data.order.KeyOrder
 
 import scala.concurrent.duration._
 
@@ -42,7 +42,7 @@ class SegmentKeyValueLimiterSpec extends TestBase with Benchmark {
 
   implicit override val groupingStrategy: Option[KeyValueGroupingStrategyInternal] = None
 
-  override implicit val ordering: Ordering[Slice[Byte]] = KeyOrder.default
+  override implicit val keyOrder: KeyOrder[Slice[Byte]] = KeyOrder.default
 
   //  override def deleteFiles = false
 
@@ -81,7 +81,7 @@ class SegmentKeyValueLimiterSpec extends TestBase with Benchmark {
           keyValues = mergedKeyValues,
           bloomFilterFalsePositiveRate = 0.1,
           removeDeletes = false
-        )(ordering, None, keyValueLimiter).assertGet
+        )(keyOrder, None, keyValueLimiter).assertGet
 
       //perform reads multiple times and assert that while the key-values are getting drop, the group key-value does
       //not get dropped
@@ -95,7 +95,7 @@ class SegmentKeyValueLimiterSpec extends TestBase with Benchmark {
         headGroup.isValueDecompressed shouldBe false
         headGroup.isIndexDecompressed shouldBe false
         //since no key-values are read the group's key-values should be empty
-        headGroup.segmentCache(ordering, keyValueLimiter).isCacheEmpty shouldBe true
+        headGroup.segmentCache(keyOrder, keyValueLimiter).isCacheEmpty shouldBe true
 
         //read all key-values and this should trigger dropping of key-values
         assertGet(nonGroupKeyValues, segment)
@@ -105,7 +105,7 @@ class SegmentKeyValueLimiterSpec extends TestBase with Benchmark {
         headGroup.isHeaderDecompressed shouldBe true
         headGroup.isValueDecompressed shouldBe true
         headGroup.isIndexDecompressed shouldBe true
-        headGroup.segmentCache(ordering, keyValueLimiter).isCacheEmpty shouldBe false
+        headGroup.segmentCache(keyOrder, keyValueLimiter).isCacheEmpty shouldBe false
         //wait to allow for limit to do it's clean up
         sleep(1.second)
       }

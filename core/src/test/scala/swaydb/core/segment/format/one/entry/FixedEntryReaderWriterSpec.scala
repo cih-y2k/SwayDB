@@ -20,16 +20,15 @@
 package swaydb.core.segment.format.one.entry
 
 import org.scalatest.WordSpec
+import scala.util.Random
 import swaydb.core.CommonAssertions
 import swaydb.core.data.Transient
 import swaydb.core.io.reader.Reader
 import swaydb.core.segment.format.one.entry.reader.EntryReader
+import swaydb.data.order.KeyOrder
 import swaydb.data.slice.Slice
-import swaydb.order.KeyOrder
 import swaydb.serializers.Default._
 import swaydb.serializers._
-
-import scala.util.Random
 
 class FixedEntryReaderWriterSpec extends WordSpec with CommonAssertions {
 
@@ -37,8 +36,8 @@ class FixedEntryReaderWriterSpec extends WordSpec with CommonAssertions {
 
   "write and read single Fixed entry" in {
     runThis(1000.times) {
-      val entry = randomFixedKeyValue(randomIntMax()).toTransient
-      //println("write: " + entry)
+      val entry = randomFixedKeyValue(key = randomIntMax(), value = randomStringOption).toTransient
+      println("write: " + entry)
 
       val read = EntryReader.read(Reader(entry.indexEntryBytes), entry.valueEntryBytes.map(Reader(_)).getOrElse(Reader.empty), 0, 0, 0, None).assertGet
       //println("read:  " + read)
@@ -48,7 +47,7 @@ class FixedEntryReaderWriterSpec extends WordSpec with CommonAssertions {
 
   "write and read two fixed entries" in {
     runThis(1000.times) {
-      val keyValues = randomizedIntKeyValues(count = 1, addRandomGroups = false)
+      val keyValues = randomizedIntKeyValues(count = 1, addRandomGroups = false, addRandomTimes = true)
       val previous = keyValues.head
 
       val duplicateValues = if (Random.nextBoolean()) previous.value else randomStringOption

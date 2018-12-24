@@ -19,17 +19,17 @@
 
 package swaydb.core
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.{Deadline, FiniteDuration}
+import scala.util.Try
 import swaydb.core.data.KeyValue._
 import swaydb.core.data.Memory
 import swaydb.core.map.MapEntry
 import swaydb.data.accelerate.Level0Meter
 import swaydb.data.compaction.LevelMeter
 import swaydb.data.config.SwayDBConfig
+import swaydb.data.order.KeyOrder
 import swaydb.data.slice.Slice
-
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.{Deadline, FiniteDuration}
-import scala.util.Try
 
 private[swaydb] object CoreAPI {
 
@@ -38,7 +38,7 @@ private[swaydb] object CoreAPI {
             cacheSize: Long,
             cacheCheckDelay: FiniteDuration,
             segmentsOpenCheckDelay: FiniteDuration)(implicit ec: ExecutionContext,
-                                                           ordering: Ordering[Slice[Byte]]): Try[CoreAPI] =
+                                                    keyOrder: KeyOrder[Slice[Byte]]): Try[CoreAPI] =
     DBInitializer(
       config = config,
       maxSegmentsOpen = maxOpenSegments,
