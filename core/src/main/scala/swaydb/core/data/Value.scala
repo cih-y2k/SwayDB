@@ -20,8 +20,8 @@
 package swaydb.core.data
 
 import swaydb.data.slice.Slice
-
 import scala.concurrent.duration.{Deadline, FiniteDuration}
+import scala.util.Try
 
 private[swaydb] sealed trait Value {
 
@@ -176,6 +176,22 @@ private[swaydb] object Value {
 
     def unslice(): Value.Update =
       Value.Update(value.unslice(), deadline, appliedFunctions.unslice())
+
+  }
+
+  case class UpdateFunction(deadline: Option[Deadline],
+                            appliedFunctions: Seq[Slice[Byte]]) extends FromValue with RangeValue {
+
+    override val isRemove: Boolean = false
+
+    override def hasTimeLeft(): Boolean =
+      deadline.forall(_.hasTimeLeft())
+
+    override def hasTimeLeftWithGrace(grace: FiniteDuration): Boolean =
+      deadline.forall(deadline => (deadline - grace).hasTimeLeft())
+
+    def unslice(): Value.UpdateFunction =
+      UpdateFunction(deadline, appliedFunctions.unslice())
 
   }
 }
