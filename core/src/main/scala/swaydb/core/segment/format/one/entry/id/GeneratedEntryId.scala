@@ -10,8 +10,8 @@ trait GeneratedEntryId {
 
   def keyIdsList: List[EntryId]
 
-  def emptyAppliedFunctions: EntryId.AppliedFunctions.Empty
+  def emptyFunctions: EntryId.Functions.Empty
 
-  def nonEmptyAppliedFunctions: EntryId.AppliedFunctions.NonEmpty
+  def nonEmptyFunctions: EntryId.Functions.NonEmpty
 
 }

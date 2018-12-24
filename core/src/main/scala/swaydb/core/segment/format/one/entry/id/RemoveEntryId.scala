@@ -39,16 +39,16 @@ import swaydb.macros.SealedList
 sealed abstract class RemoveEntryId(override val id: Int) extends EntryId(id)
 object RemoveEntryId extends GeneratedEntryId {
 
-  override val emptyAppliedFunctions: EntryId.AppliedFunctions.Empty = RemoveEntryId.EmptyAppliedFunctions
-  override val nonEmptyAppliedFunctions: EntryId.AppliedFunctions.NonEmpty = RemoveEntryId.NonEmptyAppliedFunctions
+  override val emptyFunctions: EntryId.Functions.Empty = RemoveEntryId.EmptyFunctions
+  override val nonEmptyFunctions: EntryId.Functions.NonEmpty = RemoveEntryId.NonEmptyFunctions
 
-  sealed trait EmptyAppliedFunctions extends AppliedFunctions.Empty {
-    override val keyPartiallyCompressed: Key.PartiallyCompressed = EmptyAppliedFunctions.KeyPartiallyCompressed
-    override val keyFullyCompressed: Key.FullyCompressed = EmptyAppliedFunctions.KeyFullyCompressed
-    override val keyUncompressed: Key.Uncompressed = EmptyAppliedFunctions.KeyUncompressed
+  sealed trait EmptyFunctions extends Functions.Empty {
+    override val keyPartiallyCompressed: Key.PartiallyCompressed = EmptyFunctions.KeyPartiallyCompressed
+    override val keyFullyCompressed: Key.FullyCompressed = EmptyFunctions.KeyFullyCompressed
+    override val keyUncompressed: Key.Uncompressed = EmptyFunctions.KeyUncompressed
   }
-  object EmptyAppliedFunctions extends EmptyAppliedFunctions {
-    sealed trait KeyPartiallyCompressed extends Key.PartiallyCompressed with EmptyAppliedFunctions {
+  object EmptyFunctions extends EmptyFunctions {
+    sealed trait KeyPartiallyCompressed extends Key.PartiallyCompressed with EmptyFunctions {
       override val noValue: Value.NoValue = KeyPartiallyCompressed.NoValue
       override def valueFullyCompressed: Value.FullyCompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
       override def valueUncompressed: Value.Uncompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
@@ -80,7 +80,7 @@ object RemoveEntryId extends GeneratedEntryId {
       }
     }
 
-    sealed trait KeyUncompressed extends Key.Uncompressed with EmptyAppliedFunctions {
+    sealed trait KeyUncompressed extends Key.Uncompressed with EmptyFunctions {
       override val noValue: Value.NoValue = KeyUncompressed.NoValue
       override def valueFullyCompressed: Value.FullyCompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
       override def valueUncompressed: Value.Uncompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
@@ -112,7 +112,7 @@ object RemoveEntryId extends GeneratedEntryId {
       }
     }
 
-    sealed trait KeyFullyCompressed extends Key.FullyCompressed with EmptyAppliedFunctions {
+    sealed trait KeyFullyCompressed extends Key.FullyCompressed with EmptyFunctions {
       override val noValue: Value.NoValue = KeyFullyCompressed.NoValue
       override def valueFullyCompressed: Value.FullyCompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
       override def valueUncompressed: Value.Uncompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
@@ -145,13 +145,13 @@ object RemoveEntryId extends GeneratedEntryId {
     }
   }
 
-  sealed trait NonEmptyAppliedFunctions extends AppliedFunctions.NonEmpty {
-    override val keyPartiallyCompressed: Key.PartiallyCompressed = NonEmptyAppliedFunctions.KeyPartiallyCompressed
-    override val keyFullyCompressed: Key.FullyCompressed = NonEmptyAppliedFunctions.KeyFullyCompressed
-    override val keyUncompressed: Key.Uncompressed = NonEmptyAppliedFunctions.KeyUncompressed
+  sealed trait NonEmptyFunctions extends Functions.NonEmpty {
+    override val keyPartiallyCompressed: Key.PartiallyCompressed = NonEmptyFunctions.KeyPartiallyCompressed
+    override val keyFullyCompressed: Key.FullyCompressed = NonEmptyFunctions.KeyFullyCompressed
+    override val keyUncompressed: Key.Uncompressed = NonEmptyFunctions.KeyUncompressed
   }
-  object NonEmptyAppliedFunctions extends NonEmptyAppliedFunctions {
-    sealed trait KeyPartiallyCompressed extends Key.PartiallyCompressed with NonEmptyAppliedFunctions {
+  object NonEmptyFunctions extends NonEmptyFunctions {
+    sealed trait KeyPartiallyCompressed extends Key.PartiallyCompressed with NonEmptyFunctions {
       override val noValue: Value.NoValue = KeyPartiallyCompressed.NoValue
       override def valueFullyCompressed: Value.FullyCompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
       override def valueUncompressed: Value.Uncompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
@@ -183,7 +183,7 @@ object RemoveEntryId extends GeneratedEntryId {
       }
     }
 
-    sealed trait KeyUncompressed extends Key.Uncompressed with NonEmptyAppliedFunctions {
+    sealed trait KeyUncompressed extends Key.Uncompressed with NonEmptyFunctions {
       override val noValue: Value.NoValue = KeyUncompressed.NoValue
       override def valueFullyCompressed: Value.FullyCompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
       override def valueUncompressed: Value.Uncompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
@@ -215,7 +215,7 @@ object RemoveEntryId extends GeneratedEntryId {
       }
     }
 
-    sealed trait KeyFullyCompressed extends Key.FullyCompressed with NonEmptyAppliedFunctions {
+    sealed trait KeyFullyCompressed extends Key.FullyCompressed with NonEmptyFunctions {
       override val noValue: Value.NoValue = KeyFullyCompressed.NoValue
       override def valueFullyCompressed: Value.FullyCompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
       override def valueUncompressed: Value.Uncompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")

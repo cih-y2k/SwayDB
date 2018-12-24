@@ -20,7 +20,7 @@
 package swaydb.core.map.serializer
 
 import java.util.concurrent.TimeUnit
-import swaydb.core.data.Memory
+import swaydb.core.data.{AppliedFunctions, Memory, UpdateFunctions}
 import swaydb.core.map.MapEntry
 import swaydb.core.util.{Bytes, TryUtil}
 import swaydb.data.slice.{Reader, Slice}
@@ -33,11 +33,11 @@ object LevelZeroMapEntryReader {
 
     override def read(reader: Reader): Try[Option[MapEntry.Put[Slice[Byte], Memory.Remove]]] =
       for {
-        appliedFunctionsLength <- reader.readInt()
-        appliedFunctions <- if (appliedFunctionsLength == 0) TryUtil.successEmptySeqBytes else reader.read(appliedFunctionsLength).flatMap(Bytes.readSeq)
         keyLength <- reader.readInt()
         key <- reader.read(keyLength).map(_.unslice())
         after <- reader.readLong()
+        appliedFunctionsLength <- reader.readInt()
+        appliedFunctions <- if (appliedFunctionsLength == 0) AppliedFunctions.emptySuccess else reader.read(appliedFunctionsLength).flatMap(AppliedFunctions.read)
       } yield {
         val deadline = if (after == 0) None else Some(Deadline(after, TimeUnit.NANOSECONDS))
         Some(MapEntry.Put(key, Memory.Remove(key, deadline, appliedFunctions))(LevelZeroMapEntryWriter.Level0RemoveWriter))
@@ -48,13 +48,13 @@ object LevelZeroMapEntryReader {
 
     override def read(reader: Reader): Try[Option[MapEntry.Put[Slice[Byte], Memory.Put]]] =
       for {
-        appliedFunctionsLength <- reader.readInt()
-        appliedFunctions <- if (appliedFunctionsLength == 0) TryUtil.successEmptySeqBytes else reader.read(appliedFunctionsLength).flatMap(Bytes.readSeq)
         keyLength <- reader.readInt()
         key <- reader.read(keyLength).map(_.unslice())
         valueLength <- reader.readInt()
         value <- if (valueLength == 0) TryUtil.successNone else reader.read(valueLength).map(Some(_))
         after <- reader.readLong()
+        appliedFunctionsLength <- reader.readInt()
+        appliedFunctions <- if (appliedFunctionsLength == 0) AppliedFunctions.emptySuccess else reader.read(appliedFunctionsLength).flatMap(AppliedFunctions.read)
       } yield {
         val deadline = if (after == 0) None else Some(Deadline(after, TimeUnit.NANOSECONDS))
         Some(MapEntry.Put(key, Memory.Put(key, value, deadline, appliedFunctions))(LevelZeroMapEntryWriter.Level0PutWriter))
@@ -65,16 +65,18 @@ object LevelZeroMapEntryReader {
 
     override def read(reader: Reader): Try[Option[MapEntry.Put[Slice[Byte], Memory.Update]]] =
       for {
-        appliedFunctionsLength <- reader.readInt()
-        appliedFunctions <- if (appliedFunctionsLength == 0) TryUtil.successEmptySeqBytes else reader.read(appliedFunctionsLength).flatMap(Bytes.readSeq)
         keyLength <- reader.readInt()
         key <- reader.read(keyLength).map(_.unslice())
         valueLength <- reader.readInt()
         value <- if (valueLength == 0) TryUtil.successNone else reader.read(valueLength).map(Some(_))
         after <- reader.readLong()
+        updatedFunctionsLength <- reader.readInt()
+        updatedFunctions <- if (updatedFunctionsLength == 0) UpdateFunctions.emptySuccess else reader.read(updatedFunctionsLength).flatMap(UpdateFunctions.read)
+        appliedFunctionsLength <- reader.readInt()
+        appliedFunctions <- if (appliedFunctionsLength == 0) AppliedFunctions.emptySuccess else reader.read(appliedFunctionsLength).flatMap(AppliedFunctions.read)
       } yield {
         val deadline = if (after == 0) None else Some(Deadline(after, TimeUnit.NANOSECONDS))
-        Some(MapEntry.Put(key, Memory.Update(key, value, deadline, ???, appliedFunctions))(LevelZeroMapEntryWriter.Level0UpdateWriter))
+        Some(MapEntry.Put(key, Memory.Update(key, value, deadline, updatedFunctions, appliedFunctions))(LevelZeroMapEntryWriter.Level0UpdateWriter))
       }
   }
 

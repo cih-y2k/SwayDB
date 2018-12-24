@@ -951,7 +951,7 @@ sealed trait LevelWriteSpec extends TestBase with MockFactory with PrivateMethod
       val keyValues: Slice[KeyValue] = Slice.create[KeyValue](3) //null KeyValue will throw an exception and the put should be reverted
       keyValues.add(Memory.Put(123))
       keyValues.add(Memory.Put(1234, 12345))
-      keyValues.add(Persistent.Put(1235, None, null, 10, 10, 10, 10, 10, Slice.emptySeqBytes)) //give it a null Reader so that it fails reading the value.
+      keyValues.add(Persistent.Put(1235, None, null, 10, 10, 10, 10, 10, AppliedFunctions.empty)) //give it a null Reader so that it fails reading the value.
 
       val function = PrivateMethod[Try[Unit]]('putKeyValues)
       val failed = level invokePrivate function(keyValues, Iterable(targetSegment), None)

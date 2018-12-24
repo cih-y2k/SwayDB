@@ -207,16 +207,16 @@ class BytesSpec extends WordSpec with Matchers with TryAssert with CommonAsserti
   "sizeOfSeq" when {
     "non empty" in {
       val bytes = Seq[Slice[Byte]](Slice.writeIntUnsigned(1), Slice.writeIntUnsigned(2), Slice.writeIntUnsigned(3))
-      Bytes.sizeOfSeq(bytes) shouldBe 6
+      Bytes.sizeOf(bytes) shouldBe 6
     }
 
     "non empty on random bytes" in {
       val bytes = Seq[Slice[Byte]](randomBytes(100), randomBytes(100), randomBytes(100), randomBytes(100))
-      Bytes.sizeOfSeq(bytes) shouldBe (100 * 4) + 4
+      Bytes.sizeOf(bytes) shouldBe (100 * 4) + 4
     }
 
     "empty" in {
-      Bytes.sizeOfSeq(Slice.emptySeqBytes) shouldBe 0
+      Bytes.sizeOf(Slice.emptySeqBytes) shouldBe 0
     }
   }
 
@@ -224,7 +224,7 @@ class BytesSpec extends WordSpec with Matchers with TryAssert with CommonAsserti
     "non empty" in {
       val bytes = Seq[Slice[Byte]](Slice.writeIntUnsigned(1), Slice.writeIntUnsigned(2), Slice.writeIntUnsigned(3))
 
-      val merged = Bytes.writeSeq(bytes)
+      val merged = Bytes.write(bytes)
       merged should have size 6
 
       Bytes.readSeq(merged).assertGet shouldBe bytes
@@ -233,14 +233,14 @@ class BytesSpec extends WordSpec with Matchers with TryAssert with CommonAsserti
     "non empty on random bytes" in {
       val bytes = Seq[Slice[Byte]](randomBytes(100), randomBytes(100), randomBytes(100), randomBytes(100))
 
-      val merged = Bytes.writeSeq(bytes)
+      val merged = Bytes.write(bytes)
       merged should have size (100 * 4) + 4
 
       Bytes.readSeq(merged).assertGet shouldBe bytes
     }
 
     "empty" in {
-      Bytes.writeSeq(Slice.emptySeqBytes) shouldBe empty
+      Bytes.write(Slice.emptySeqBytes) shouldBe empty
       Bytes.readSeq(Slice.emptyBytes).assertGet shouldBe empty
     }
   }

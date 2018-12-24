@@ -118,6 +118,12 @@ private[swaydb] object Bytes {
     size
   }
 
+  /**
+    * Returns the unsigned size of the int plus the int.
+    */
+  def sizeOfAndPlus(int: Int): Int =
+    sizeOf(int) + int
+
   def compressJoin(left: Slice[Byte],
                    right: Slice[Byte]): Slice[Byte] =
     compressJoin(left, right, Slice.emptyBytes)
@@ -188,25 +194,25 @@ private[swaydb] object Bytes {
         }
     }
 
-  def sizeOfSeq(bytes: Seq[Slice[Byte]]): Int =
+  def sizeOf(bytes: Seq[Slice[Byte]]): Int =
     bytes.foldLeft(0) {
       case (size, bytes) =>
         size + bytes.size + sizeOf(bytes.size)
     }
 
-  def writeSeq(bytes: Seq[Slice[Byte]]): Slice[Byte] =
+  def write(bytes: Seq[Slice[Byte]]): Slice[Byte] =
     bytes
-      .foldLeft(Slice.create[Byte](sizeOfSeq(bytes))) {
+      .foldLeft(Slice.create[Byte](sizeOf(bytes))) {
         case (result, bytes) =>
           result
             .addIntUnsigned(bytes.size)
             .addAll(bytes)
       }
 
-  def readSeq(bytes: Slice[Byte]): Try[ListBuffer[Slice[Byte]]] =
+  def readSeq(bytes: Slice[Byte]): Try[Seq[Slice[Byte]]] =
     readSeq(Reader(bytes))
 
-  def readSeq(reader: Reader): Try[ListBuffer[Slice[Byte]]] =
+  def readSeq(reader: Reader): Try[Seq[Slice[Byte]]] =
     reader.foldLeftTry(ListBuffer.empty[Slice[Byte]]) {
       case (result, reader) =>
         reader.readIntUnsigned() flatMap {

@@ -50,7 +50,7 @@ object KeyValueEntryWriter {
               ValueWriter.write(
                 current = current,
                 compressDuplicateValues = compressDuplicateValues,
-                entryId = entryId.nonEmptyAppliedFunctions.keyFullyCompressed,
+                entryId = entryId.nonEmptyFunctions.keyFullyCompressed,
                 plusSize = appliedFunctionsBytes.size + sizeOf(current.key.size) //write the size of keys that were compressed.
               )
 
@@ -67,7 +67,7 @@ object KeyValueEntryWriter {
               ValueWriter.write(
                 current = current,
                 compressDuplicateValues = compressDuplicateValues,
-                entryId = entryId.nonEmptyAppliedFunctions.keyPartiallyCompressed,
+                entryId = entryId.nonEmptyFunctions.keyPartiallyCompressed,
                 plusSize = appliedFunctionsBytes.size + sizeOf(commonBytes) + remainingBytes.size //write the size of keys compressed and also the uncompressed Bytes
               )
 
@@ -85,7 +85,7 @@ object KeyValueEntryWriter {
         ValueWriter.write(
           current = current,
           compressDuplicateValues = compressDuplicateValues,
-          entryId = entryId.nonEmptyAppliedFunctions.keyUncompressed,
+          entryId = entryId.nonEmptyFunctions.keyUncompressed,
           plusSize = appliedFunctionsBytes.size + current.key.size //write key bytes.
         )
 

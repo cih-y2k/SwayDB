@@ -26,17 +26,18 @@ import swaydb.data.slice.Slice
 object AppliedFunctionsWriter {
 
   def write(current: KeyValue.WriteOnly): Option[Slice[Byte]] =
-    current match {
-      case fixed: KeyValue.WriteOnly.Fixed if fixed.appliedFunctions.nonEmpty =>
-        val bytes = Bytes.writeSeq(fixed.appliedFunctions)
-        val slice = Slice.create[Byte](Bytes.sizeOf(bytes.size) + bytes.size)
-        slice
-          .addIntUnsigned(bytes.size)
-          .addAll(bytes)
-
-        Some(bytes)
-
-      case _: KeyValue.WriteOnly.Range | _: KeyValue.WriteOnly.Group | _: KeyValue.WriteOnly.Fixed =>
-        None
-    }
+//    current match {
+//      case fixed: KeyValue.WriteOnly.Fixed if fixed.appliedFunctions.nonEmpty =>
+//        val bytes = Bytes.write(fixed.appliedFunctions)
+//        val slice = Slice.create[Byte](Bytes.sizeOf(bytes.size) + bytes.size)
+//        slice
+//          .addIntUnsigned(bytes.size)
+//          .addAll(bytes)
+//
+//        Some(bytes)
+//
+//      case _: KeyValue.WriteOnly.Range | _: KeyValue.WriteOnly.Group | _: KeyValue.WriteOnly.Fixed =>
+//        None
+//    }
+  ???
 }

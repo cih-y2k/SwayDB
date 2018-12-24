@@ -217,7 +217,7 @@ private[core] class LevelZero(val path: Path,
                 fromKey = fromKey,
                 toKey = to,
                 fromValue = None,
-                rangeValue = Value.Update(value, None, Slice.emptySeqBytes, Slice.emptySeqBytes)
+                rangeValue = Value.Update(value, None, UpdateFunctions.empty, AppliedFunctions.empty)
               )
             ): MapEntry[Slice[Byte], Memory.SegmentResponse]) ++ MapEntry.Put[Slice[Byte], Memory.Update](to, Memory.Update(to, value))
           }

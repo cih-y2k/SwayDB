@@ -20,6 +20,7 @@
 package swaydb.core.segment
 
 import swaydb.core.TestBase
+import swaydb.core.data.AppliedFunctions
 import swaydb.core.data.Persistent._
 import swaydb.core.group.compression.GroupDecompressor
 import swaydb.core.io.reader.Reader
@@ -48,7 +49,7 @@ class KeyMatcherSpec extends TestBase {
     */
 
   implicit def toPut(int: Int): Put =
-    Put(int, None, Reader(Slice.emptyBytes), 0, 0, 0, 0, 0, Slice.emptySeqBytes)
+    Put(int, None, Reader(Slice.emptyBytes), 0, 0, 0, 0, 0, AppliedFunctions.empty)
 
   implicit def toSomePut(int: Int): Option[Put] =
     Some(int)

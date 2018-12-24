@@ -21,31 +21,30 @@ package swaydb.core.segment.format.one.entry.reader
 
 import scala.annotation.implicitNotFound
 import scala.util.Try
-import swaydb.core.data.KeyValue
+import swaydb.core.data.{AppliedFunctions, KeyValue}
 import swaydb.core.segment.format.one.entry.id.EntryId
-import swaydb.core.util.{Bytes, TryUtil}
-import swaydb.data.slice.{Reader, Slice}
+import swaydb.data.slice.Reader
 
 @implicitNotFound("Type class implementation not found for AppliedFunctionsReader of type ${T}")
 sealed trait AppliedFunctionsReader[-T] {
   def read(indexReader: Reader,
-           previous: Option[KeyValue.ReadOnly]): Try[Seq[Slice[Byte]]]
+           previous: Option[KeyValue.ReadOnly]): Try[AppliedFunctions]
 }
 
 object AppliedFunctionsReaders {
 
-  implicit object UnCompressedAppliedFunctionsReader extends AppliedFunctionsReader[EntryId.AppliedFunctions.Empty] {
+  implicit object UnCompressedAppliedFunctionsReader extends AppliedFunctionsReader[EntryId.Functions.Empty] {
     override def read(indexReader: Reader,
-                      previous: Option[KeyValue.ReadOnly]): Try[Seq[Slice[Byte]]] =
-      TryUtil.successEmptySeqBytes
+                      previous: Option[KeyValue.ReadOnly]): Try[AppliedFunctions] =
+      AppliedFunctions.emptySuccess
   }
 
-  implicit object PartiallyCompressedAppliedFunctionsReader extends AppliedFunctionsReader[EntryId.AppliedFunctions.NonEmpty] {
+  implicit object PartiallyCompressedAppliedFunctionsReader extends AppliedFunctionsReader[EntryId.Functions.NonEmpty] {
     override def read(indexReader: Reader,
-                      previous: Option[KeyValue.ReadOnly]): Try[Seq[Slice[Byte]]] =
+                      previous: Option[KeyValue.ReadOnly]): Try[AppliedFunctions] =
       indexReader.readIntUnsigned() flatMap {
         size =>
-          indexReader.read(size) flatMap Bytes.readSeq
+          indexReader.read(size) flatMap AppliedFunctions.read
       }
   }
 }

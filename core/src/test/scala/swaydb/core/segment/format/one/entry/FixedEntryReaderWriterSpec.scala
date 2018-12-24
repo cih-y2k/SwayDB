@@ -22,7 +22,7 @@ package swaydb.core.segment.format.one.entry
 import org.scalatest.WordSpec
 import scala.util.Random
 import swaydb.core.CommonAssertions
-import swaydb.core.data.Transient
+import swaydb.core.data.{AppliedFunctions, Transient}
 import swaydb.core.io.reader.Reader
 import swaydb.core.segment.format.one.entry.reader.EntryReader
 import swaydb.data.order.KeyOrder
@@ -54,9 +54,9 @@ class FixedEntryReaderWriterSpec extends WordSpec with CommonAssertions {
       val duplicateDeadline = if (Random.nextBoolean()) previous.deadline else randomDeadlineOption
       val next =
         if (Random.nextBoolean())
-          Transient.Remove(key = randomIntMax(), deadline = duplicateDeadline, Some(previous), 0.1, Slice.emptySeqBytes)
+          Transient.Remove(key = randomIntMax(), deadline = duplicateDeadline, Some(previous), 0.1, AppliedFunctions.empty)
         else
-          Transient.Put(key = randomIntMax(), value = duplicateValues, deadline = duplicateDeadline, Some(previous), 0.1, compressDuplicateValues = true, Slice.emptySeqBytes)
+          Transient.Put(key = randomIntMax(), value = duplicateValues, deadline = duplicateDeadline, Some(previous), 0.1, compressDuplicateValues = true, AppliedFunctions.empty)
 
       println("previous: " + previous)
       println("next: " + next)
