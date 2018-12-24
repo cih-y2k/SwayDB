@@ -39,6 +39,9 @@ import swaydb.macros.SealedList
 sealed abstract class GroupEmptyAppliedFunctionsEntryId(override val id: Int) extends EntryId(id)
 object GroupEmptyAppliedFunctionsEntryId extends GeneratedEntryId {
 
+//  override val emptyAppliedFunctions: AppliedFunctions.Empty = EmptyAppliedFunctions
+//  override val nonEmptyAppliedFunctions: AppliedFunctions.NonEmpty = GroupNonEmptyAppliedFunctionsEntryId.NonEmptyAppliedFunctions
+
   sealed trait EmptyAppliedFunctions extends AppliedFunctions.Empty {
     override val keyPartiallyCompressed: Key.PartiallyCompressed = EmptyAppliedFunctions.KeyPartiallyCompressed
     override val keyFullyCompressed: Key.FullyCompressed = EmptyAppliedFunctions.KeyFullyCompressed
@@ -46,7 +49,7 @@ object GroupEmptyAppliedFunctionsEntryId extends GeneratedEntryId {
   }
 
   object EmptyAppliedFunctions extends EmptyAppliedFunctions {
-    
+
     sealed trait KeyPartiallyCompressed extends Key.PartiallyCompressed with EmptyAppliedFunctions {
       override val noValue: Value.NoValue = KeyPartiallyCompressed.NoValue
       override val valueFullyCompressed: Value.FullyCompressed = KeyPartiallyCompressed.ValueFullyCompressed
@@ -1927,4 +1930,5 @@ object GroupEmptyAppliedFunctionsEntryId extends GeneratedEntryId {
       Some(id)
     else
       None
+
 }

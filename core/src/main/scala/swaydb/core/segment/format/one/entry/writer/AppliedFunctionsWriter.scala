@@ -19,8 +19,9 @@
 
 package swaydb.core.segment.format.one.entry.writer
 
-import swaydb.core.data.KeyValue
+import swaydb.core.data.{KeyValue, Transient}
 import swaydb.core.segment.format.one.entry.id.EntryId
+import swaydb.core.util.Bytes
 import swaydb.core.util.Bytes._
 import swaydb.data.slice.Slice
 
@@ -30,7 +31,28 @@ object AppliedFunctionsWriter {
     * @return indexEntry, valueBytes, valueOffsetBytes, nextValuesOffsetPosition
     */
   def write(current: KeyValue.WriteOnly,
-            compressDuplicateValues: Boolean): (Slice[Byte], Option[Slice[Byte]], Int, Int) =
-    ???
+            entryId: EntryId,
+            compressDuplicateValues: Boolean): (Slice[Byte], EntryId.AppliedFunctions) =
+//    current match {
+//      case fixed: KeyValue.WriteOnly.Fixed if fixed.appliedFunctions.nonEmpty =>
+//        KeyWriter.write(
+//          current = current,
+//          appliedFunctionsBytes = Bytes.writeSeq(fixed.appliedFunctions),
+//          entryId = A
+//        )
+//
+//        (Bytes.writeSeq(fixed.appliedFunctions), EntryId.
+//          ???
+//      case _: KeyValue.WriteOnly.Range | _: KeyValue.WriteOnly.Group | _: KeyValue.WriteOnly.Fixed =>
+//        val (indexBytes, valueBytes, valueStartOffset, valueEndOffset) =
+//          ValueWriter.write(
+//            current = current,
+//            compressDuplicateValues = compressDuplicateValues,
+//            id = entryId.keyPartiallyCompressed,
+//            plusSize = sizeOf(commonBytes) + remainingBytes.size //write the size of keys compressed and also the uncompressed Bytes
+//          )
+//        (indexBytes.addIntUnsigned(commonBytes).addAll(remainingBytes), valueBytes, valueStartOffset, valueEndOffset)
+//    }
+  ???
 
 }

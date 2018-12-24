@@ -30,6 +30,7 @@ object KeyWriter {
     * @return indexEntry, valueBytes, valueOffsetBytes, nextValuesOffsetPosition
     */
   def write(current: KeyValue.WriteOnly,
+            appliedFunctionsBytes: Slice[Byte],
             entryId: EntryId.AppliedFunctions,
             compressDuplicateValues: Boolean): (Slice[Byte], Option[Slice[Byte]], Int, Int) =
     current.previous flatMap {
@@ -46,7 +47,7 @@ object KeyWriter {
 
             //            assert(indexBytes.isFull, s"indexSlice is not full actual: ${indexBytes.written} - expected: ${indexBytes.size}")
             //            valueBytes foreach (valueBytes => assert(valueBytes.isFull, s"valueBytes is not full actual: ${valueBytes.written} - expected: ${valueBytes.size}"))
-            (indexBytes.addIntUnsigned(current.key.size), valueBytes, valueStartOffset, valueEndOffset)
+            (indexBytes.addAll(appliedFunctionsBytes).addIntUnsigned(current.key.size), valueBytes, valueStartOffset, valueEndOffset)
 
           case (commonBytes, remainingBytes) =>
             val (indexBytes, valueBytes, valueStartOffset, valueEndOffset) =
@@ -56,7 +57,7 @@ object KeyWriter {
                 id = entryId.keyPartiallyCompressed,
                 plusSize = sizeOf(commonBytes) + remainingBytes.size //write the size of keys compressed and also the uncompressed Bytes
               )
-            (indexBytes.addIntUnsigned(commonBytes).addAll(remainingBytes), valueBytes, valueStartOffset, valueEndOffset)
+            (indexBytes.addAll(appliedFunctionsBytes).addIntUnsigned(commonBytes).addAll(remainingBytes), valueBytes, valueStartOffset, valueEndOffset)
         }
     } getOrElse {
       //no common prefixes or no previous write without compression
@@ -67,6 +68,6 @@ object KeyWriter {
           id = entryId.keyUncompressed,
           plusSize = current.key.size //write key bytes.
         )
-      (indexBytes.addAll(current.key), valueBytes, valueStartOffset, valueEndOffset)
+      (indexBytes.addAll(appliedFunctionsBytes).addAll(current.key), valueBytes, valueStartOffset, valueEndOffset)
     }
 }
