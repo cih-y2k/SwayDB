@@ -6,9 +6,3 @@ import swaydb.data.slice.Slice
 trait CacheFunction {
   def get(functionId: Slice[Byte]): Option[UpdateFunction]
 }
-
-object CacheFunction {
-
-
-
-}

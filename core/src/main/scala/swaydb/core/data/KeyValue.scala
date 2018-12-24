@@ -768,7 +768,7 @@ private[core] object Transient {
       KeyValueEntryWriter.write(
         current = this,
         entryId = RemoveEntryId,
-        compressDuplicateValues = true
+        compressDuplicateValues = false
       )
 
     override val hasValueEntryBytes: Boolean = previous.exists(_.hasValueEntryBytes) || valueEntryBytes.exists(_.nonEmpty)
