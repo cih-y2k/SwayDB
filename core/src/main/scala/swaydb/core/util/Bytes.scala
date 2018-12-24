@@ -19,13 +19,13 @@
 
 package swaydb.core.util
 
+import scala.collection.mutable.ListBuffer
+import scala.util.{Success, Try}
 import swaydb.core.data.KeyValue
 import swaydb.core.io.reader.Reader
+import swaydb.core.util.PipeOps._
 import swaydb.data.slice.{Reader, Slice}
-import swaydb.data.util.{ByteSizeOf, ByteUtil}
-import scala.util.{Success, Try}
-import PipeOps._
-import scala.collection.mutable.ListBuffer
+import swaydb.data.util.ByteUtil
 
 private[swaydb] object Bytes {
 
@@ -218,15 +218,4 @@ private[swaydb] object Bytes {
         }
     }
 
-}
-
-object Test extends App {
-
-  (15000 to 100000) foreach {
-    i =>
-      if (Bytes.sizeOf(i) > 2) {
-        println(i)
-        System.exit(0)
-      }
-  }
 }
