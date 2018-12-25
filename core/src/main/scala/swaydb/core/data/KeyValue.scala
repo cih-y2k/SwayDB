@@ -71,7 +71,7 @@ private[core] object KeyValue {
 
   object ReadOnly {
     /**
-      * A API response type expected from a [[swaydb.core.map.Map]] or [[swaydb.core.segment.Segment]].
+      * An API response type expected from a [[swaydb.core.map.Map]] or [[swaydb.core.segment.Segment]].
       *
       * Key-value types like [[Group]] are processed within [[swaydb.core.map.Map]] or [[swaydb.core.segment.Segment]].
       */
