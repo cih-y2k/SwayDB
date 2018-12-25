@@ -27,6 +27,9 @@ import swaydb.core.segment.format.one.entry.id._
 
 /**
   * Generates if Ids for all key-value types.
+  *
+  * Put entries with No meta block have the smallest id number and require only 1 byte for the id.
+  * All other entries requires 2 bytes maximum for the id.
   */
 object IdsGenerator extends App {
 
@@ -99,6 +102,4 @@ object IdsGenerator extends App {
 
   println("minId: " + minId)
   println("maxId: " + maxKey)
-
 }
-

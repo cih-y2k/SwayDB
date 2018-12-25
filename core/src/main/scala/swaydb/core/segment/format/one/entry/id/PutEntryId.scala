@@ -48,7 +48,7 @@ object PutEntryId extends GeneratedEntryId {
     override val keyUncompressed: Key.Uncompressed = EmptyMeta.KeyUncompressed
   }
   object EmptyMeta extends EmptyMeta {
-    
+
     sealed trait KeyPartiallyCompressed extends Key.PartiallyCompressed with EmptyMeta {
       override val noValue: Value.NoValue = KeyPartiallyCompressed.NoValue
       override val valueFullyCompressed: Value.FullyCompressed = KeyPartiallyCompressed.ValueFullyCompressed

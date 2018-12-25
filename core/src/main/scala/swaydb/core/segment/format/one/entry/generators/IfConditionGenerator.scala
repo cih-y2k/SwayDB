@@ -36,7 +36,7 @@ object IfConditionGenerator extends App {
   }
 
   def write(ids: List[EntryId], appliedFunctionsType: String): Unit = {
-    val className = ids.head.getClass.getName.replaceAll("swaydb.core.segment.format.one.entry.id.", "").split("\\$").head.replace("EntryId", s"${appliedFunctionsType}AppliedFunctionsEntryIdReader")
+    val className = ids.head.getClass.getName.replaceAll("swaydb.core.segment.format.one.entry.id.", "").split("\\$").head.replace("EntryId", s"${appliedFunctionsType}MetaEntryIdReader")
     val targetIdClass = Paths.get(s"${System.getProperty("user.dir")}/core/src/main/scala/swaydb/core/segment/format/one/entry/reader/matchers/$className.scala")
     val allLines = Files.readAllLines(targetIdClass).asScala
     val writer = new PrintWriter(targetIdClass.toFile)
