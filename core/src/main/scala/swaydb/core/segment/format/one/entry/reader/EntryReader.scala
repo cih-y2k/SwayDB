@@ -39,7 +39,7 @@ object EntryReader {
       id =>
         PutEntryId.contains(id) map {
           id =>
-            PutEmptyFunctionsEntryIdReader.read(
+            PutEmptyMetaEntryIdReader.read(
               id = id,
               indexReader = indexReader,
               valueReader = valueReader,
@@ -48,7 +48,7 @@ object EntryReader {
               nextIndexSize = nextIndexSize,
               previous = previous
             ) orElse {
-              PutNonEmptyFunctionsEntryIdReader.read(
+              PutNonEmptyMetaEntryIdReader.read(
                 id = id,
                 indexReader = indexReader,
                 valueReader = valueReader,
@@ -61,7 +61,7 @@ object EntryReader {
         } orElse {
           GroupEntryId.contains(id) map {
             id =>
-              GroupEmptyFunctionsEntryIdReader.read(
+              GroupEmptyMetaEntryIdReader.read(
                 id = id,
                 indexReader = indexReader,
                 valueReader = valueReader,
@@ -70,7 +70,7 @@ object EntryReader {
                 nextIndexSize = nextIndexSize,
                 previous = previous
               ) orElse {
-                GroupNonEmptyFunctionsEntryIdReader.read(
+                GroupNonEmptyMetaEntryIdReader.read(
                   id = id,
                   indexReader = indexReader,
                   valueReader = valueReader,
@@ -84,7 +84,7 @@ object EntryReader {
         } orElse {
           UpdateEntryId.contains(id) map {
             id =>
-              UpdateEmptyFunctionsEntryIdReader.read(
+              UpdateEmptyMetaEntryIdReader.read(
                 id = id,
                 indexReader = indexReader,
                 valueReader = valueReader,
@@ -93,7 +93,7 @@ object EntryReader {
                 nextIndexSize = nextIndexSize,
                 previous = previous
               ) orElse {
-                UpdateNonEmptyFunctionsEntryIdReader.read(
+                UpdateNonEmptyMetaEntryIdReader.read(
                   id = id,
                   indexReader = indexReader,
                   valueReader = valueReader,
@@ -107,7 +107,7 @@ object EntryReader {
         } orElse {
           RemoveEntryId.contains(id) map {
             id =>
-              RemoveEmptyFunctionsEntryIdReader.read(
+              RemoveEmptyMetaEntryIdReader.read(
                 id = id,
                 indexReader = indexReader,
                 valueReader = valueReader,
@@ -116,7 +116,7 @@ object EntryReader {
                 nextIndexSize = nextIndexSize,
                 previous = previous
               ) orElse {
-                RemoveNonEmptyFunctionsEntryIdReader.read(
+                RemoveNonEmptyMetaEntryIdReader.read(
                   id = id,
                   indexReader = indexReader,
                   valueReader = valueReader,
@@ -130,7 +130,7 @@ object EntryReader {
         } orElse {
           RangeEntryId.contains(id) map {
             id =>
-              RangeEmptyFunctionsEntryIdReader.read(
+              RangeEmptyMetaEntryIdReader.read(
                 id = id,
                 indexReader = indexReader,
                 valueReader = valueReader,
@@ -139,7 +139,7 @@ object EntryReader {
                 nextIndexSize = nextIndexSize,
                 previous = previous
               ) orElse {
-                RangeNonEmptyFunctionsEntryIdReader.read(
+                RangeNonEmptyMetaEntryIdReader.read(
                   id = id,
                   indexReader = indexReader,
                   valueReader = valueReader,

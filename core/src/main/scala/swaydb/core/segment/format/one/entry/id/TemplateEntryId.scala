@@ -35,17 +35,17 @@ import swaydb.macros.SealedList
 sealed abstract class TemplateEntryId(override val id: Int) extends EntryId(id)
 object TemplateEntryId extends GeneratedEntryId {
 
-  override val emptyFunctions: EntryId.Functions.Empty = TemplateEntryId.EmptyFunctions
-  override val nonEmptyFunctions: EntryId.Functions.NonEmpty = TemplateEntryId.NonEmptyFunctions
+  override val emptyMeta: EntryId.Meta.Empty = TemplateEntryId.EmptyMeta
+  override val nonEmptyMeta: EntryId.Meta.NonEmpty = TemplateEntryId.NonEmptyMeta
 
-  sealed trait EmptyFunctions extends Functions.Empty {
-    override val keyPartiallyCompressed: Key.PartiallyCompressed = EmptyFunctions.KeyPartiallyCompressed
-    override val keyFullyCompressed: Key.FullyCompressed = EmptyFunctions.KeyFullyCompressed
-    override val keyUncompressed: Key.Uncompressed = EmptyFunctions.KeyUncompressed
+  sealed trait EmptyMeta extends Meta.Empty {
+    override val keyPartiallyCompressed: Key.PartiallyCompressed = EmptyMeta.KeyPartiallyCompressed
+    override val keyFullyCompressed: Key.FullyCompressed = EmptyMeta.KeyFullyCompressed
+    override val keyUncompressed: Key.Uncompressed = EmptyMeta.KeyUncompressed
   }
-  object EmptyFunctions extends EmptyFunctions {
+  object EmptyMeta extends EmptyMeta {
 
-    sealed trait KeyPartiallyCompressed extends Key.PartiallyCompressed with EmptyFunctions {
+    sealed trait KeyPartiallyCompressed extends Key.PartiallyCompressed with EmptyMeta {
       override val noValue: Value.NoValue = KeyPartiallyCompressed.NoValue
       override val valueFullyCompressed: Value.FullyCompressed = KeyPartiallyCompressed.ValueFullyCompressed
       override val valueUncompressed: Value.Uncompressed = KeyPartiallyCompressed.ValueUncompressed
@@ -667,7 +667,7 @@ object TemplateEntryId extends GeneratedEntryId {
       }
     }
 
-    sealed trait KeyUncompressed extends Key.Uncompressed with EmptyFunctions {
+    sealed trait KeyUncompressed extends Key.Uncompressed with EmptyMeta {
       override val noValue: Value.NoValue = KeyUncompressed.NoValue
       override val valueFullyCompressed: Value.FullyCompressed = KeyUncompressed.ValueFullyCompressed
       override val valueUncompressed: Value.Uncompressed = KeyUncompressed.ValueUncompressed
@@ -1290,7 +1290,7 @@ object TemplateEntryId extends GeneratedEntryId {
       }
     }
 
-    sealed trait KeyFullyCompressed extends Key.FullyCompressed with EmptyFunctions {
+    sealed trait KeyFullyCompressed extends Key.FullyCompressed with EmptyMeta {
       override val noValue: Value.NoValue = KeyFullyCompressed.NoValue
       override val valueFullyCompressed: Value.FullyCompressed = KeyFullyCompressed.ValueFullyCompressed
       override val valueUncompressed: Value.Uncompressed = KeyFullyCompressed.ValueUncompressed
@@ -1913,14 +1913,14 @@ object TemplateEntryId extends GeneratedEntryId {
     }
   }
 
-  sealed trait NonEmptyFunctions extends Functions.NonEmpty {
-    override val keyPartiallyCompressed: Key.PartiallyCompressed = NonEmptyFunctions.KeyPartiallyCompressed
-    override val keyFullyCompressed: Key.FullyCompressed = NonEmptyFunctions.KeyFullyCompressed
-    override val keyUncompressed: Key.Uncompressed = NonEmptyFunctions.KeyUncompressed
+  sealed trait NonEmptyMeta extends Meta.NonEmpty {
+    override val keyPartiallyCompressed: Key.PartiallyCompressed = NonEmptyMeta.KeyPartiallyCompressed
+    override val keyFullyCompressed: Key.FullyCompressed = NonEmptyMeta.KeyFullyCompressed
+    override val keyUncompressed: Key.Uncompressed = NonEmptyMeta.KeyUncompressed
   }
-  object NonEmptyFunctions extends NonEmptyFunctions {
+  object NonEmptyMeta extends NonEmptyMeta {
 
-    sealed trait KeyPartiallyCompressed extends Key.PartiallyCompressed with NonEmptyFunctions {
+    sealed trait KeyPartiallyCompressed extends Key.PartiallyCompressed with NonEmptyMeta {
       override val noValue: Value.NoValue = KeyPartiallyCompressed.NoValue
       override val valueFullyCompressed: Value.FullyCompressed = KeyPartiallyCompressed.ValueFullyCompressed
       override val valueUncompressed: Value.Uncompressed = KeyPartiallyCompressed.ValueUncompressed
@@ -2542,7 +2542,7 @@ object TemplateEntryId extends GeneratedEntryId {
       }
     }
 
-    sealed trait KeyUncompressed extends Key.Uncompressed with NonEmptyFunctions {
+    sealed trait KeyUncompressed extends Key.Uncompressed with NonEmptyMeta {
       override val noValue: Value.NoValue = KeyUncompressed.NoValue
       override val valueFullyCompressed: Value.FullyCompressed = KeyUncompressed.ValueFullyCompressed
       override val valueUncompressed: Value.Uncompressed = KeyUncompressed.ValueUncompressed
@@ -3165,7 +3165,7 @@ object TemplateEntryId extends GeneratedEntryId {
       }
     }
 
-    sealed trait KeyFullyCompressed extends Key.FullyCompressed with NonEmptyFunctions {
+    sealed trait KeyFullyCompressed extends Key.FullyCompressed with NonEmptyMeta {
       override val noValue: Value.NoValue = KeyFullyCompressed.NoValue
       override val valueFullyCompressed: Value.FullyCompressed = KeyFullyCompressed.ValueFullyCompressed
       override val valueUncompressed: Value.Uncompressed = KeyFullyCompressed.ValueUncompressed

@@ -42,8 +42,8 @@ object EntryId {
   //    } toMap
 
   trait Entry {
-    def emptyAppliedFunctions: Functions.Empty
-    def nonEmptyFunctions: Functions.NonEmpty
+    def emptyAppliedFunctions: Meta.Empty
+    def nonEmptyFunctions: Meta.NonEmpty
   }
   object Entry {
     trait Remove extends Entry
@@ -51,16 +51,16 @@ object EntryId {
     trait Update extends Entry
   }
 
-  trait Functions {
+  trait Meta {
     //@formatter:off
     def keyFullyCompressed: Key.FullyCompressed
     def keyPartiallyCompressed: Key.PartiallyCompressed
     def keyUncompressed: Key.Uncompressed
     //@formatter:on
   }
-  object Functions {
-    trait Empty extends Functions
-    trait NonEmpty extends Functions
+  object Meta {
+    trait Empty extends Meta
+    trait NonEmpty extends Meta
   }
 
   trait Key {

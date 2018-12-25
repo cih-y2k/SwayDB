@@ -20,7 +20,7 @@
 package swaydb.core.segment.format.one.entry.reader.matchers
 
 import scala.util.Try
-import swaydb.core.data.Persistent
+import swaydb.core.data.{AppliedFunctions, Persistent, UpdateFunctions}
 import swaydb.core.segment.format.one.entry.id.EntryId
 import swaydb.core.segment.format.one.entry.reader._
 import swaydb.data.slice.Reader
@@ -38,13 +38,13 @@ object UpdateReader {
                                                          valueOffsetReader: ValueOffsetReader[T],
                                                          valueLengthReader: ValueLengthReader[T],
                                                          valueBytesReader: ValueReader[T],
-                                                         appliedFunctionsReader: AppliedFunctionsReader[T]): Try[Persistent.Update] =
+                                                         metaReader: MetaReader[T]): Try[Persistent.Update] =
     deadlineReader.read(indexReader, previous) flatMap {
       deadline =>
         valueBytesReader.read(indexReader, previous) flatMap {
           valueOffsetAndLength =>
-            appliedFunctionsReader.read(indexReader, previous) flatMap {
-              appliedFunctions =>
+            metaReader.read(indexReader, previous) flatMap {
+              meta =>
                 keyReader.read(indexReader, previous) map {
                   key =>
                     Persistent.Update(
@@ -56,8 +56,8 @@ object UpdateReader {
                       indexOffset = indexOffset,
                       valueOffset = valueOffsetAndLength.map(_._1).getOrElse(-1),
                       valueLength = valueOffsetAndLength.map(_._2).getOrElse(0),
-                      updateFunctions = ???,
-                      appliedFunctions = appliedFunctions
+                      updateFunctions = meta.map(_.updateFunctions).getOrElse(UpdateFunctions.empty),
+                      appliedFunctions = meta.map(_.appliedFunctions).getOrElse(AppliedFunctions.empty)
                     )
                 }
             }

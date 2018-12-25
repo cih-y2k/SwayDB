@@ -20,7 +20,7 @@
 package swaydb.core.segment.format.one.entry.reader.matchers
 
 import scala.util.Try
-import swaydb.core.data.Persistent
+import swaydb.core.data.{AppliedFunctions, Persistent}
 import swaydb.core.segment.format.one.entry.id.EntryId
 import swaydb.core.segment.format.one.entry.reader._
 import swaydb.data.slice.Reader
@@ -34,11 +34,11 @@ object RemoveReader {
                            nextIndexSize: Int,
                            previous: Option[Persistent])(implicit keyReader: KeyReader[T],
                                                          deadlineReader: DeadlineReader[T],
-                                                         appliedFunctionsReader: AppliedFunctionsReader[T]): Try[Persistent.Remove] =
+                                                         metaReader: MetaReader[T]): Try[Persistent.Remove] =
     deadlineReader.read(indexReader, previous) flatMap {
       deadline =>
-        appliedFunctionsReader.read(indexReader, previous) flatMap {
-          appliedFunctions =>
+        metaReader.read(indexReader, previous) flatMap {
+          metaBytes =>
             keyReader.read(indexReader, previous) map {
               key =>
                 Persistent.Remove(
@@ -47,7 +47,7 @@ object RemoveReader {
                   nextIndexOffset = nextIndexOffset,
                   nextIndexSize = nextIndexSize,
                   deadline = deadline,
-                  appliedFunctions = appliedFunctions
+                  appliedFunctions = metaBytes.map(_.appliedFunctions).getOrElse(AppliedFunctions.empty)
                 )
             }
         }

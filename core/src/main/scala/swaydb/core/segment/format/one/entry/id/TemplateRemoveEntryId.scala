@@ -35,16 +35,16 @@ import swaydb.macros.SealedList
 sealed abstract class TemplateRemoveEntryId(override val id: Int) extends EntryId(id)
 object TemplateRemoveEntryId extends GeneratedEntryId {
 
-  override val emptyFunctions: EntryId.Functions.Empty = TemplateRemoveEntryId.EmptyFunctions
-  override val nonEmptyFunctions: EntryId.Functions.NonEmpty = TemplateRemoveEntryId.NonEmptyFunctions
+  override val emptyMeta: EntryId.Meta.Empty = TemplateRemoveEntryId.EmptyMeta
+  override val nonEmptyMeta: EntryId.Meta.NonEmpty = TemplateRemoveEntryId.NonEmptyMeta
 
-  sealed trait EmptyFunctions extends Functions.Empty {
-    override val keyPartiallyCompressed: Key.PartiallyCompressed = EmptyFunctions.KeyPartiallyCompressed
-    override val keyFullyCompressed: Key.FullyCompressed = EmptyFunctions.KeyFullyCompressed
-    override val keyUncompressed: Key.Uncompressed = EmptyFunctions.KeyUncompressed
+  sealed trait EmptyMeta extends Meta.Empty {
+    override val keyPartiallyCompressed: Key.PartiallyCompressed = EmptyMeta.KeyPartiallyCompressed
+    override val keyFullyCompressed: Key.FullyCompressed = EmptyMeta.KeyFullyCompressed
+    override val keyUncompressed: Key.Uncompressed = EmptyMeta.KeyUncompressed
   }
-  object EmptyFunctions extends EmptyFunctions {
-    sealed trait KeyPartiallyCompressed extends Key.PartiallyCompressed with EmptyFunctions {
+  object EmptyMeta extends EmptyMeta {
+    sealed trait KeyPartiallyCompressed extends Key.PartiallyCompressed with EmptyMeta {
       override val noValue: Value.NoValue = KeyPartiallyCompressed.NoValue
       override def valueFullyCompressed: Value.FullyCompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
       override def valueUncompressed: Value.Uncompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
@@ -76,7 +76,7 @@ object TemplateRemoveEntryId extends GeneratedEntryId {
       }
     }
 
-    sealed trait KeyUncompressed extends Key.Uncompressed with EmptyFunctions {
+    sealed trait KeyUncompressed extends Key.Uncompressed with EmptyMeta {
       override val noValue: Value.NoValue = KeyUncompressed.NoValue
       override def valueFullyCompressed: Value.FullyCompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
       override def valueUncompressed: Value.Uncompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
@@ -108,7 +108,7 @@ object TemplateRemoveEntryId extends GeneratedEntryId {
       }
     }
 
-    sealed trait KeyFullyCompressed extends Key.FullyCompressed with EmptyFunctions {
+    sealed trait KeyFullyCompressed extends Key.FullyCompressed with EmptyMeta {
       override val noValue: Value.NoValue = KeyFullyCompressed.NoValue
       override def valueFullyCompressed: Value.FullyCompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
       override def valueUncompressed: Value.Uncompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
@@ -141,13 +141,13 @@ object TemplateRemoveEntryId extends GeneratedEntryId {
     }
   }
 
-  sealed trait NonEmptyFunctions extends Functions.NonEmpty {
-    override val keyPartiallyCompressed: Key.PartiallyCompressed = NonEmptyFunctions.KeyPartiallyCompressed
-    override val keyFullyCompressed: Key.FullyCompressed = NonEmptyFunctions.KeyFullyCompressed
-    override val keyUncompressed: Key.Uncompressed = NonEmptyFunctions.KeyUncompressed
+  sealed trait NonEmptyMeta extends Meta.NonEmpty {
+    override val keyPartiallyCompressed: Key.PartiallyCompressed = NonEmptyMeta.KeyPartiallyCompressed
+    override val keyFullyCompressed: Key.FullyCompressed = NonEmptyMeta.KeyFullyCompressed
+    override val keyUncompressed: Key.Uncompressed = NonEmptyMeta.KeyUncompressed
   }
-  object NonEmptyFunctions extends NonEmptyFunctions {
-    sealed trait KeyPartiallyCompressed extends Key.PartiallyCompressed with NonEmptyFunctions {
+  object NonEmptyMeta extends NonEmptyMeta {
+    sealed trait KeyPartiallyCompressed extends Key.PartiallyCompressed with NonEmptyMeta {
       override val noValue: Value.NoValue = KeyPartiallyCompressed.NoValue
       override def valueFullyCompressed: Value.FullyCompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
       override def valueUncompressed: Value.Uncompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
@@ -179,7 +179,7 @@ object TemplateRemoveEntryId extends GeneratedEntryId {
       }
     }
 
-    sealed trait KeyUncompressed extends Key.Uncompressed with NonEmptyFunctions {
+    sealed trait KeyUncompressed extends Key.Uncompressed with NonEmptyMeta {
       override val noValue: Value.NoValue = KeyUncompressed.NoValue
       override def valueFullyCompressed: Value.FullyCompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
       override def valueUncompressed: Value.Uncompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
@@ -211,7 +211,7 @@ object TemplateRemoveEntryId extends GeneratedEntryId {
       }
     }
 
-    sealed trait KeyFullyCompressed extends Key.FullyCompressed with NonEmptyFunctions {
+    sealed trait KeyFullyCompressed extends Key.FullyCompressed with NonEmptyMeta {
       override val noValue: Value.NoValue = KeyFullyCompressed.NoValue
       override def valueFullyCompressed: Value.FullyCompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
       override def valueUncompressed: Value.Uncompressed = throw new Exception("Ugly! But this should never be called. Remove key-values do not have values.")
