@@ -7,10 +7,6 @@ import swaydb.data.slice.Slice
 
 object MetaBlock {
 
-  val functionsMetaId: Int = 0
-  val updatedFunctionMetaId: Int = 1
-  val appliedFunctionMetaId: Int = 2
-
   val empty =
     MetaBlock(
       updateFunctions = UpdateFunctions.empty,
@@ -19,6 +15,19 @@ object MetaBlock {
 
   val emptySuccess =
     Success(empty)
+
+  /**
+    * When both updatedFunction and appliedFunctions exists.
+    */
+  val functionsMetaId: Int = 0
+  /**
+    * When only updatedFunctions exists.
+    */
+  val updatedFunctionMetaId: Int = 1
+  /**
+    * When only appliedFunctions exists.
+    */
+  val appliedFunctionMetaId: Int = 2
 
   def apply(updateFunctionBytes: Slice[Byte],
             appliedFunctionsBytes: Slice[Byte]): Try[MetaBlock] =
@@ -55,7 +64,7 @@ object MetaBlock {
     write(UpdateFunctions.empty, appliedFunctions)
 
   /**
-    * NOTE: The [[sizeOf]] and [[write]] this function should produce the
+    * NOTE: The [[sizeOf]] and [[write]] functions should produce the
     * same byte sized output.
     */
   def write(updateFunctions: UpdateFunctions,
@@ -120,12 +129,20 @@ object MetaBlock {
       None
     }
 
+  /**
+    * NOTE: The [[sizeOf]] and [[write]] functions should produce the
+    * same byte sized output.
+    */
   def sizeOf(appliedFunctions: AppliedFunctions): Int =
     sizeOf(
       updateFunctions = UpdateFunctions.empty,
       appliedFunctions = appliedFunctions
     )
 
+  /**
+    * NOTE: The [[sizeOf]] and [[write]] functions should produce the
+    * same byte sized output.
+    */
   def sizeOf(updateFunctions: UpdateFunctions,
              appliedFunctions: AppliedFunctions): Int =
     if (updateFunctions.nonEmpty && appliedFunctions.nonEmpty) {

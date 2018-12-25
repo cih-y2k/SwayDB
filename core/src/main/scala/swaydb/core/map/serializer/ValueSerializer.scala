@@ -74,8 +74,8 @@ object ValueSerializers {
       override def write(value: Value.Remove, bytes: Slice[Byte]): Unit =
         bytes
           .addLong(value.deadline.toNanos)
-          //write the metaBlock, if metaBlock is empty write 0 bytes for indicate metaBlock is empty.
-          //MetaBlock already writes the metaBlock with the block size.
+          //write the metaBlock, if metaBlock is empty write 0 byte to indicate metaBlock is empty.
+          //MetaBlock.write already writes the block size.
           .addAll(MetaBlock.write(value.appliedFunctions).getOrElse(Slice.zeroUnsignedInt))
 
       override def bytesRequired(value: Value.Remove): Int =
@@ -233,7 +233,7 @@ object ValueSerializers {
 
       override def bytesRequired(value: Value.Remove): Int =
         Bytes.sizeOf(value.deadline.toNanos) +
-          (MetaBlock.sizeOf(value.appliedFunctions).max(Slice.zeroUnsignedInt.size))
+          MetaBlock.sizeOf(value.appliedFunctions).max(Slice.zeroUnsignedInt.size)
 
       override def read(reader: Reader): Try[Value.Remove] =
         readDeadlineLevels(reader) flatMap {

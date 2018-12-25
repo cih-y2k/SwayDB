@@ -71,10 +71,11 @@ class SegmentWriterReaderSpec extends TestBase {
       test(Slice(Transient.Remove(1, 50.seconds, 0.1)))
       test(Slice(Transient.Update(1, 10)))
 
-      test(Slice(Transient.Range[FromValue, RangeValue](1, 10, None, Value.Remove(randomDeadlineOption))))
-      test(Slice(Transient.Range[FromValue, RangeValue](1, 10, Some(Value.Remove(None)), Value.Remove(None))))
-      test(Slice(Transient.Range[FromValue, RangeValue](1, 10, Some(Value.Put(1)), Value.Remove(None))))
+      test(Slice(Transient.Range[FromValue, RangeValue](1, 10, None, Value.Remove(randomDeadlineOption, randomAppliedFunctions()))))
+      test(Slice(Transient.Range[FromValue, RangeValue](1, 10, Some(Value.Remove(None)), Value.Remove(None, randomAppliedFunctions()))))
+      test(Slice(Transient.Range[FromValue, RangeValue](1, 10, Some(Value.Put(1)), Value.Remove(None, randomAppliedFunctions()))))
       test(Slice(Transient.Range[FromValue, RangeValue](1, 10, None, Value.Update(1))))
+      test(Slice(Transient.Range[FromValue, RangeValue](1, 10, None, Value.Update(None, None, randomUpdatedFunctions(), randomAppliedFunctions()))))
       test(Slice(Transient.Range[FromValue, RangeValue](1, 10, Some(Value.Put(1)), Value.Update(10))))
       test(Slice(Transient.Range[FromValue, RangeValue](1, 10, Some(Value.Remove(None)), Value.Update(10))))
       test(Slice(Transient.Group(Slice(Transient.Put(1, value = 1)), randomCompression(), randomCompression(), 0.1, None).assertGet))
@@ -126,7 +127,8 @@ class SegmentWriterReaderSpec extends TestBase {
       test(Slice(Transient.Remove(1), Transient.Range[FromValue, RangeValue](2, 10, Some(Value.Remove(None)), Value.Remove(None))).updateStats)
 
       runThis(10.times) {
-        test(Slice(Transient.Group(randomizedIntKeyValues(keyValueCount, startId = Some(1)), randomCompression(), randomCompression(), 0.1, None).assertGet))
+        val keyValues = randomizedIntKeyValues(keyValueCount, startId = Some(1))
+        test(Slice(Transient.Group(keyValues, randomCompression(), randomCompression(), 0.1, None).assertGet))
       }
 
       test(Slice(Transient.Remove(1), Transient.Put(2), Transient.Remove(3), Transient.Remove(4), Transient.Range[FromValue, RangeValue](5, 10, Some(Value.Put(10)), Value.Remove(None))).updateStats)
