@@ -88,6 +88,8 @@ private[core] object KeyValue {
 
       def updateDeadline(deadline: Deadline): Fixed
 
+      def add(other: AppliedFunctions): Fixed
+
       def appliedFunctions: AppliedFunctions
     }
 
@@ -159,6 +161,8 @@ private[core] object KeyValue {
       def toPut(): KeyValue.ReadOnly.Put
 
       def toPut(deadline: Deadline): KeyValue.ReadOnly.Put
+
+      def add(otherUpdates: UpdateFunctions, otherApplied: AppliedFunctions): KeyValue.ReadOnly.Update
     }
 
     object Range {
@@ -418,6 +422,8 @@ private[swaydb] object Memory {
     override def hasTimeLeftAtLeast(minus: FiniteDuration): Boolean =
       deadline.forall(deadline => (deadline - minus).hasTimeLeft())
 
+    override def add(other: AppliedFunctions): Put =
+      copy(appliedFunctions = appliedFunctions ++ other)
   }
 
   object Update {
@@ -481,6 +487,16 @@ private[swaydb] object Memory {
 
     override def toPut(deadline: Deadline): Memory.Put =
       Memory.Put(key, value, deadline)
+
+    override def add(other: AppliedFunctions): Update =
+      copy(appliedFunctions = appliedFunctions ++ other)
+
+    override def add(otherUpdates: UpdateFunctions,
+                     otherApplied: AppliedFunctions): Update =
+      copy(
+        updateFunctions = updateFunctions ++ otherUpdates,
+        appliedFunctions = appliedFunctions ++ otherApplied
+      )
   }
 
   object Remove {
@@ -512,6 +528,9 @@ private[swaydb] object Memory {
 
     override def hasTimeLeftAtLeast(atLeast: FiniteDuration): Boolean =
       deadline.exists(deadline => (deadline - atLeast).hasTimeLeft())
+
+    override def add(other: AppliedFunctions): Remove =
+      copy(appliedFunctions = appliedFunctions ++ other)
   }
 
   object Range {
@@ -1504,6 +1523,10 @@ private[core] object Persistent {
       deadline.exists(deadline => (deadline - minus).hasTimeLeft())
 
     override val valueOffset: Int = 0
+
+    override def add(other: AppliedFunctions): Remove =
+      copy(appliedFunctions = appliedFunctions ++ other)
+
   }
 
   case class Put(private var _key: Slice[Byte],
@@ -1529,6 +1552,10 @@ private[core] object Persistent {
 
     override def hasTimeLeftAtLeast(minus: FiniteDuration): Boolean =
       deadline.forall(deadline => (deadline - minus).hasTimeLeft())
+
+    override def add(other: AppliedFunctions): Put =
+      copy(appliedFunctions = appliedFunctions ++ other)
+
   }
 
   case class Update(private var _key: Slice[Byte],
@@ -1580,6 +1607,16 @@ private[core] object Persistent {
         valueOffset = valueOffset,
         valueLength = valueLength,
         appliedFunctions = appliedFunctions
+      )
+
+    override def add(other: AppliedFunctions): Update =
+      copy(appliedFunctions = appliedFunctions ++ other)
+
+    override def add(otherUpdates: UpdateFunctions,
+                     otherApplied: AppliedFunctions): Update =
+      copy(
+        updateFunctions = updateFunctions ++ otherUpdates,
+        appliedFunctions = appliedFunctions ++ otherApplied
       )
   }
 

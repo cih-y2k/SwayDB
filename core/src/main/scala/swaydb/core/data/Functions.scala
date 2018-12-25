@@ -2,6 +2,7 @@ package swaydb.core.data
 
 import scala.util.{Success, Try}
 import swaydb.core.util.Bytes
+import swaydb.data.order.KeyOrder
 import swaydb.data.slice.Slice
 
 sealed trait Functions {
@@ -48,6 +49,14 @@ object AppliedFunctions {
 case class AppliedFunctions(functions: Seq[Slice[Byte]]) extends Functions {
   def unslice(): AppliedFunctions =
     AppliedFunctions(functions.unslice())
+
+  def ++(other: AppliedFunctions): AppliedFunctions =
+    AppliedFunctions(functions ++ other.functions)
+
+  def existsOne(other: AppliedFunctions)(implicit keyOrder: KeyOrder[Slice[Byte]]): Boolean = {
+    import keyOrder._
+    functions.exists(function => other.functions.exists(_ equiv function))
+  }
 }
 
 object UpdateFunctions {
@@ -62,6 +71,14 @@ object UpdateFunctions {
 }
 
 case class UpdateFunctions(functions: Seq[Slice[Byte]]) extends Functions {
+  def ++(other: UpdateFunctions): UpdateFunctions =
+    UpdateFunctions(functions ++ other.functions)
+
   def unslice(): UpdateFunctions =
     UpdateFunctions(functions.unslice())
+
+  def existsOne(other: UpdateFunctions)(implicit keyOrder: KeyOrder[Slice[Byte]]): Boolean = {
+    import keyOrder._
+    functions.exists(function => other.functions.exists(_ equiv function))
+  }
 }

@@ -21,9 +21,9 @@ package swaydb.core.segment.merge
 
 import swaydb.core.data.{KeyValue, Memory, Persistent, Value}
 import swaydb.data.slice.Slice
-
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
+import swaydb.data.order.KeyOrder
 
 private[core] object KeyValueMerger {
 
@@ -83,113 +83,124 @@ private[core] object KeyValueMerger {
                  hasTimeLeftAtLeast: FiniteDuration): Try[Value.FromValue] =
     applyValue(newValue.toMemory(Slice.emptyBytes), oldValue.toMemory(Slice.emptyBytes), hasTimeLeftAtLeast).flatMap(_.toFromValue)
 
+//  def applyValueCheckNotApplied(newKeyValue: KeyValue.ReadOnly.Fixed,
+//                                oldKeyValue: KeyValue.ReadOnly.Fixed,
+//                                hasTimeLeftAtLeast: FiniteDuration)(implicit keyOrder: KeyOrder[Slice[Byte]]): Try[KeyValue.ReadOnly.Fixed] =
+//    if(newKeyValue.appliedFunctions.existsOne(oldKeyValue.appliedFunctions))
+
+
   //This code contains .get with a wrapper Try which should be replaced with flatMap.
   def applyValue(newKeyValue: KeyValue.ReadOnly.Fixed,
                  oldKeyValue: KeyValue.ReadOnly.Fixed,
                  hasTimeLeftAtLeast: FiniteDuration): Try[KeyValue.ReadOnly.Fixed] =
-  //    Try {
-  //      newKeyValue match {
-  //        //*** Put combinations ***
-  //        case _: Memory.Put | _: Persistent.Put => //put always overwrites older key-value
-  //          newKeyValue
-  //
-  //        //*** Remove combinations ***
-  //        case Memory.Remove(_, None) | Persistent.Remove(_, None, _, _, _) => //Remove without deadline always overwrites old key-value
-  //          newKeyValue
-  //
-  //        case Memory.Remove(_, Some(_)) | Persistent.Remove(_, Some(_), _, _, _) => //Remove Some (when deadline exists)
-  //          //*** Remove combinations when deadline exits in new key-value***
-  //          oldKeyValue match {
-  //            case Memory.Remove(_, None) | Persistent.Remove(_, None, _, _, _) => // Remove Some - Remove None
-  //              oldKeyValue
-  //
-  //            case Memory.Remove(_, Some(_)) | Persistent.Remove(_, Some(_), _, _, _) => // Remove Some - Remove Some
-  //              if (newKeyValue.deadline.get <= oldKeyValue.deadline.get || oldKeyValue.hasTimeLeftAtLeast(hasTimeLeftAtLeast))
-  //                newKeyValue
-  //              else
-  //                oldKeyValue
-  //
-  //            case Memory.Put(_, _, None) | Persistent.Put(_, None, _, _, _, _, _, _) => //Put Some - Put None
-  //              if (newKeyValue.hasTimeLeft())
-  //                oldKeyValue.updateDeadline(deadline = newKeyValue.deadline.get)
-  //              else
-  //                newKeyValue
-  //
-  //            case Memory.Put(_, _, Some(_)) | Persistent.Put(_, Some(_), _, _, _, _, _, _) => //Put Some - Put Some
-  //              if (newKeyValue.deadline.get <= oldKeyValue.deadline.get || oldKeyValue.hasTimeLeftAtLeast(hasTimeLeftAtLeast))
-  //                oldKeyValue.updateDeadline(deadline = newKeyValue.deadline.get)
-  //              else
-  //                oldKeyValue
-  //
-  //            case Memory.Update(_, _, None) | Persistent.Update(_, None, _, _, _, _, _, _) => //Update Some - Update None
-  //              oldKeyValue.updateDeadline(deadline = newKeyValue.deadline.get)
-  //
-  //            case Memory.Update(_, _, Some(_)) | Persistent.Update(_, Some(_), _, _, _, _, _, _) => //Update Some - Update Some
-  //              if (newKeyValue.deadline.get <= oldKeyValue.deadline.get || oldKeyValue.hasTimeLeftAtLeast(hasTimeLeftAtLeast))
-  //                oldKeyValue.updateDeadline(deadline = newKeyValue.deadline.get)
-  //              else
-  //                oldKeyValue
-  //
-  //          }
-  //
-  //        //*** Update combinations ***
-  //        case Memory.Update(_, _, None) | Persistent.Update(_, None, _, _, _, _, _, _) => //Update None without deadline always overwrites old key-value
-  //          oldKeyValue match {
-  //            case Memory.Remove(_, None) | Persistent.Remove(_, None, _, _, _) => // Remove Some - Remove None
-  //              oldKeyValue
-  //
-  //            case Memory.Remove(_, Some(_)) | Persistent.Remove(_, Some(_), _, _, _) => // Remove Some - Remove Some
-  //              if (oldKeyValue.hasTimeLeft())
-  //                newKeyValue.updateDeadline(oldKeyValue.deadline.get)
-  //              else
-  //                oldKeyValue
-  //
-  //            case Memory.Put(_, _, None) | Persistent.Put(_, None, _, _, _, _, _, _) => //Put Some - Put None
-  //              Memory.Put(oldKeyValue.key, newKeyValue.getOrFetchValue.get, oldKeyValue.deadline)
-  //
-  //            case Memory.Put(_, _, Some(_)) | Persistent.Put(_, Some(_), _, _, _, _, _, _) => //Put Some - Put Some
-  //              Memory.Put(oldKeyValue.key, newKeyValue.getOrFetchValue.get, oldKeyValue.deadline)
-  //
-  //            case Memory.Update(_, _, None) | Persistent.Update(_, None, _, _, _, _, _, _) => //Update Some - Update None
-  //              newKeyValue
-  //
-  //            case Memory.Update(_, _, Some(_)) | Persistent.Update(_, Some(_), _, _, _, _, _, _) => //Update Some - Update Some
-  //              newKeyValue.updateDeadline(oldKeyValue.deadline.get)
-  //
-  //          }
-  //
-  //        case Memory.Update(_, _, Some(_)) | Persistent.Update(_, Some(_), _, _, _, _, _, _) => //Update Some without deadline always overwrites old key-value
-  //          oldKeyValue match {
-  //            case Memory.Remove(_, None) | Persistent.Remove(_, None, _, _, _) => // Remove Some - Remove None
-  //              oldKeyValue
-  //
-  //            case Memory.Remove(_, Some(_)) | Persistent.Remove(_, Some(_), _, _, _) => // Remove Some - Remove Some
-  //              if (oldKeyValue.isOverdue())
-  //                oldKeyValue
-  //              else if (newKeyValue.deadline.get <= oldKeyValue.deadline.get || oldKeyValue.hasTimeLeftAtLeast(hasTimeLeftAtLeast))
-  //                newKeyValue
-  //              else
-  //                newKeyValue.updateDeadline(oldKeyValue.deadline.get)
-  //
-  //            case Memory.Put(_, _, None) | Persistent.Put(_, None, _, _, _, _, _, _) => //Put Some - Put None
-  //              Memory.Put(oldKeyValue.key, newKeyValue.getOrFetchValue.get, newKeyValue.deadline)
-  //
-  //            case Memory.Put(_, _, Some(_)) | Persistent.Put(_, Some(_), _, _, _, _, _, _) => //Put Some - Put Some
-  //              if (newKeyValue.deadline.get <= oldKeyValue.deadline.get || oldKeyValue.hasTimeLeftAtLeast(hasTimeLeftAtLeast))
-  //                Memory.Put(oldKeyValue.key, newKeyValue.getOrFetchValue.get, newKeyValue.deadline)
-  //              else
-  //                Memory.Put(oldKeyValue.key, newKeyValue.getOrFetchValue.get, oldKeyValue.deadline)
-  //
-  //            case Memory.Update(_, _, None) | Persistent.Update(_, None, _, _, _, _, _, _) => //Update Some - Update None
-  //              newKeyValue
-  //
-  //            case Memory.Update(_, _, Some(_)) | Persistent.Update(_, Some(_), _, _, _, _, _, _) => //Update Some - Update Some
-  //              if (newKeyValue.deadline.get <= oldKeyValue.deadline.get || oldKeyValue.hasTimeLeftAtLeast(hasTimeLeftAtLeast))
-  //                newKeyValue
-  //              else
-  //                Memory.Update(oldKeyValue.key, newKeyValue.getOrFetchValue.get, oldKeyValue.deadline)
-  //          }
-  //      }
-  //    }
-    ???
+    Try {
+      newKeyValue match {
+        //*** Put combinations ***
+        case _: Memory.Put | _: Persistent.Put => //put always overwrites older key-value
+          if (oldKeyValue.appliedFunctions.nonEmpty)
+            newKeyValue add oldKeyValue.appliedFunctions
+          else
+            newKeyValue
+
+
+        //*** Remove combinations ***
+        case Memory.Remove(_, None, _) | Persistent.Remove(_, None, _, _, _, _) => //Remove without deadline always overwrites old key-value
+          if (oldKeyValue.appliedFunctions.nonEmpty)
+            newKeyValue add oldKeyValue.appliedFunctions
+          else
+            newKeyValue
+
+        case Memory.Remove(_, Some(_), _) | Persistent.Remove(_, Some(_), _, _, _, _) => //Remove Some (when deadline exists)
+          //*** Remove combinations when deadline exits in new key-value***
+          oldKeyValue match {
+            case Memory.Remove(_, None, _) | Persistent.Remove(_, None, _, _, _, _) => // Remove Some - Remove None
+              oldKeyValue
+
+            case Memory.Remove(_, Some(_), _) | Persistent.Remove(_, Some(_), _, _, _, _) => // Remove Some - Remove Some
+              if (newKeyValue.deadline.get <= oldKeyValue.deadline.get || oldKeyValue.hasTimeLeftAtLeast(hasTimeLeftAtLeast))
+                newKeyValue
+              else
+                oldKeyValue
+
+            case Memory.Put(_, _, None, _) | Persistent.Put(_, None, _, _, _, _, _, _, _) => //Put Some - Put None
+              if (newKeyValue.hasTimeLeft())
+                oldKeyValue.updateDeadline(deadline = newKeyValue.deadline.get)
+              else
+                newKeyValue
+
+            case Memory.Put(_, _, Some(_), _) | Persistent.Put(_, Some(_), _, _, _, _, _, _, _) => //Put Some - Put Some
+              if (newKeyValue.deadline.get <= oldKeyValue.deadline.get || oldKeyValue.hasTimeLeftAtLeast(hasTimeLeftAtLeast))
+                oldKeyValue.updateDeadline(deadline = newKeyValue.deadline.get)
+              else
+                oldKeyValue
+
+            case Memory.Update(_, _, None, _, _) | Persistent.Update(_, None, _, _, _, _, _, _, _, _) => //Update Some - Update None
+              oldKeyValue.updateDeadline(deadline = newKeyValue.deadline.get)
+
+            case Memory.Update(_, _, Some(_), _, _) | Persistent.Update(_, Some(_), _, _, _, _, _, _, _, _) => //Update Some - Update Some
+              if (newKeyValue.deadline.get <= oldKeyValue.deadline.get || oldKeyValue.hasTimeLeftAtLeast(hasTimeLeftAtLeast))
+                oldKeyValue.updateDeadline(deadline = newKeyValue.deadline.get)
+              else
+                oldKeyValue
+          }
+
+        //*** Update combinations ***
+        case Memory.Update(_, _, None, _, _) | Persistent.Update(_, None, _, _, _, _, _, _, _, _) => //Update None without deadline always overwrites old key-value
+          oldKeyValue match {
+            case Memory.Remove(_, None, _) | Persistent.Remove(_, None, _, _, _, _) => // Remove Some - Remove None
+              oldKeyValue
+
+            case Memory.Remove(_, Some(_), _) | Persistent.Remove(_, Some(_), _, _, _, _) => // Remove Some - Remove Some
+              if (oldKeyValue.hasTimeLeft())
+                newKeyValue.updateDeadline(oldKeyValue.deadline.get)
+              else
+                oldKeyValue
+
+            case Memory.Put(_, _, None, _) | Persistent.Put(_, None, _, _, _, _, _, _, _) => //Put Some - Put None
+              Memory.Put(oldKeyValue.key, newKeyValue.getOrFetchValue.get, oldKeyValue.deadline)
+
+            case Memory.Put(_, _, Some(_), _) | Persistent.Put(_, Some(_), _, _, _, _, _, _, _) => //Put Some - Put Some
+              Memory.Put(oldKeyValue.key, newKeyValue.getOrFetchValue.get, oldKeyValue.deadline)
+
+            case Memory.Update(_, _, None, _, _) | Persistent.Update(_, None, _, _, _, _, _, _, _, _) => //Update Some - Update None
+              newKeyValue
+
+            case Memory.Update(_, _, Some(_), _, _) | Persistent.Update(_, Some(_), _, _, _, _, _, _, _, _) => //Update Some - Update Some
+              newKeyValue.updateDeadline(oldKeyValue.deadline.get)
+
+          }
+
+        case Memory.Update(_, _, Some(_), _, _) | Persistent.Update(_, Some(_), _, _, _, _, _, _, _, _) => //Update Some without deadline always overwrites old key-value
+          oldKeyValue match {
+            case Memory.Remove(_, None, _) | Persistent.Remove(_, None, _, _, _, _) => // Remove Some - Remove None
+              oldKeyValue
+
+            case Memory.Remove(_, Some(_), _) | Persistent.Remove(_, Some(_), _, _, _, _) => // Remove Some - Remove Some
+              if (oldKeyValue.isOverdue())
+                oldKeyValue
+              else if (newKeyValue.deadline.get <= oldKeyValue.deadline.get || oldKeyValue.hasTimeLeftAtLeast(hasTimeLeftAtLeast))
+                newKeyValue
+              else
+                newKeyValue.updateDeadline(oldKeyValue.deadline.get)
+
+            case Memory.Put(_, _, None, _) | Persistent.Put(_, None, _, _, _, _, _, _, _) => //Put Some - Put None
+              Memory.Put(oldKeyValue.key, newKeyValue.getOrFetchValue.get, newKeyValue.deadline)
+
+            case Memory.Put(_, _, Some(_), _) | Persistent.Put(_, Some(_), _, _, _, _, _, _, _) => //Put Some - Put Some
+              if (newKeyValue.deadline.get <= oldKeyValue.deadline.get || oldKeyValue.hasTimeLeftAtLeast(hasTimeLeftAtLeast))
+                Memory.Put(oldKeyValue.key, newKeyValue.getOrFetchValue.get, newKeyValue.deadline)
+              else
+                Memory.Put(oldKeyValue.key, newKeyValue.getOrFetchValue.get, oldKeyValue.deadline)
+
+            case Memory.Update(_, _, None, _, _) | Persistent.Update(_, None, _, _, _, _, _, _, _, _) => //Update Some - Update None
+              newKeyValue
+
+            case Memory.Update(_, _, Some(_), _, _) | Persistent.Update(_, Some(_), _, _, _, _, _, _, _, _) => //Update Some - Update Some
+              if (newKeyValue.deadline.get <= oldKeyValue.deadline.get || oldKeyValue.hasTimeLeftAtLeast(hasTimeLeftAtLeast))
+                newKeyValue
+              else
+                Memory.Update(oldKeyValue.key, newKeyValue.getOrFetchValue.get, oldKeyValue.deadline)
+          }
+      }
+    }
 }
