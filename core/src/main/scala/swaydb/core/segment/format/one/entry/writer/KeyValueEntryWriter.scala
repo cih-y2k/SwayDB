@@ -42,7 +42,7 @@ object KeyValueEntryWriter {
 
     current.previous flatMap {
       previous =>
-        compress(key = current.key, previous = previous, minimumCommonBytes = 2) map {
+        compress(key = current.fullKey, previous = previous, minimumCommonBytes = 2) map {
           case (_, remainingBytes) if remainingBytes.isEmpty =>
 
             val (indexBytes, valueBytes, valueStartOffset, valueEndOffset) =
@@ -50,7 +50,7 @@ object KeyValueEntryWriter {
                 current = current,
                 compressDuplicateValues = compressDuplicateValues,
                 entryId = if (metaBytes.isDefined) bind.entryId.nonEmptyMeta.keyFullyCompressed else bind.entryId.emptyMeta.keyFullyCompressed,
-                plusSize = metaBytes.map(_.size).getOrElse(0) + sizeOf(current.key.size) //write the size of keys that were compressed.
+                plusSize = metaBytes.map(_.size).getOrElse(0) + sizeOf(current.fullKey.size) //write the size of keys that were compressed.
               )
 
 //            assert(indexBytes.isFull, s"indexSlice is not full actual: ${indexBytes.written} - expected: ${indexBytes.size}")
@@ -59,7 +59,7 @@ object KeyValueEntryWriter {
             val bytes =
               indexBytes
                 .addAll(metaBytes.getOrElse(Slice.emptyBytes))
-                .addIntUnsigned(current.key.size)
+                .addIntUnsigned(current.fullKey.size)
 
             (bytes, valueBytes, valueStartOffset, valueEndOffset)
 
@@ -87,13 +87,13 @@ object KeyValueEntryWriter {
           current = current,
           compressDuplicateValues = compressDuplicateValues,
           entryId = if (metaBytes.isDefined) bind.entryId.nonEmptyMeta.keyUncompressed else bind.entryId.emptyMeta.keyUncompressed,
-          plusSize = metaBytes.map(_.size).getOrElse(0) + current.key.size //write key bytes.
+          plusSize = metaBytes.map(_.size).getOrElse(0) + current.fullKey.size //write key bytes.
         )
 
       val bytes =
         indexBytes
           .addAll(metaBytes.getOrElse(Slice.emptyBytes))
-          .addAll(current.key)
+          .addAll(current.fullKey)
 
       (bytes, valueBytes, valueStartOffset, valueEndOffset)
 

@@ -57,6 +57,26 @@ object EntryReader {
               previous = previous
             ) getOrElse Failure(SegmentException.InvalidEntryId(id))
           }
+        else if (GroupEntryId.contains(id))
+          GroupEmptyMetaEntryIdReader.read(
+            id = id,
+            indexReader = indexReader,
+            valueReader = valueReader,
+            indexOffset = indexOffset,
+            nextIndexOffset = nextIndexOffset,
+            nextIndexSize = nextIndexSize,
+            previous = previous
+          ) getOrElse {
+            GroupNonEmptyMetaEntryIdReader.read(
+              id = id,
+              indexReader = indexReader,
+              valueReader = valueReader,
+              indexOffset = indexOffset,
+              nextIndexOffset = nextIndexOffset,
+              nextIndexSize = nextIndexSize,
+              previous = previous
+            ) getOrElse Failure(SegmentException.InvalidEntryId(id))
+          }
         else if (UpdateEntryId.contains(id))
           UpdateEmptyMetaEntryIdReader.read(
             id = id,

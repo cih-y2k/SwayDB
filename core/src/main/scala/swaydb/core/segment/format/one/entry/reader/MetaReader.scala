@@ -24,7 +24,6 @@ import scala.util.{Failure, Try}
 import swaydb.core.data.{AppliedFunctions, UpdateFunctions}
 import swaydb.core.io.reader.Reader
 import swaydb.core.segment.format.one.entry.id.EntryId
-import swaydb.core.segment.format.one.entry.writer.MetaWriter
 import swaydb.core.util.TryUtil
 import swaydb.data.slice.Reader
 
@@ -56,7 +55,7 @@ object MetaReader {
   def readFunctions(reader: Reader): Try[MetaBlock] =
     reader.readIntUnsigned() flatMap {
       formatId =>
-        if (formatId == MetaWriter.functionsMetaId)
+        if (formatId == MetaBlock.functionsMetaId)
           reader.readIntUnsigned() flatMap {
             size =>
               reader.read(size) flatMap {
@@ -70,11 +69,11 @@ object MetaReader {
                   }
               }
           }
-        else if (formatId == MetaWriter.updatedFunctionMetaId)
-          reader.readRemaining() flatMap MetaBlock.updateFunction
+        else if (formatId == MetaBlock.updatedFunctionMetaId)
+          reader.readRemaining() flatMap MetaBlock.readUpdateFunction
 
-        else if (formatId == MetaWriter.appliedFunctionMetaId)
-          reader.readRemaining() flatMap MetaBlock.appliedFunction
+        else if (formatId == MetaBlock.appliedFunctionMetaId)
+          reader.readRemaining() flatMap MetaBlock.readAppliedFunction
 
         else
           Failure(new Exception("Meta.NonEmpty on an empty meta block."))
@@ -95,4 +94,5 @@ object MetaReader {
           }
       }
   }
+
 }

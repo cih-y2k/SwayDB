@@ -223,5 +223,4 @@ private[swaydb] object Bytes {
             }
         }
     }
-
 }

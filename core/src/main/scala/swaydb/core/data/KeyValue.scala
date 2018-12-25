@@ -226,6 +226,7 @@ private[core] object KeyValue {
     val isGroup: Boolean
     val hasRemove: Boolean
     val previous: Option[KeyValue.WriteOnly]
+    def fullKey: Slice[Byte]
     def stats: Stats
     def deadline: Option[Deadline]
     def indexEntryBytes: Slice[Byte]
@@ -770,6 +771,8 @@ private[core] object Transient {
         compressDuplicateValues = false
       )
 
+    override def fullKey = key
+
     override val hasValueEntryBytes: Boolean = previous.exists(_.hasValueEntryBytes) || valueEntryBytes.exists(_.nonEmpty)
     override val stats =
       Stats(
@@ -987,6 +990,8 @@ private[core] object Transient {
         deadline = deadline
       )
 
+    override def fullKey = key
+
     override def updateStats(falsePositiveRate: Double, previous: Option[KeyValue.WriteOnly]): KeyValue.WriteOnly =
       this.copy(falsePositiveRate = falsePositiveRate, previous = previous)
 
@@ -1200,6 +1205,8 @@ private[core] object Transient {
         previous = previous,
         deadline = deadline
       )
+
+    override def fullKey = key
 
     override def updateStats(falsePositiveRate: Double, previous: Option[KeyValue.WriteOnly]): Transient.Update =
       this.copy(falsePositiveRate = falsePositiveRate, previous = previous)

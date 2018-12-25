@@ -22,7 +22,7 @@ package swaydb.core.segment.format.one.entry
 import org.scalatest.WordSpec
 import scala.util.Random
 import swaydb.core.CommonAssertions
-import swaydb.core.data.{AppliedFunctions, Transient}
+import swaydb.core.data.{AppliedFunctions, Transient, UpdateFunctions}
 import swaydb.core.io.reader.Reader
 import swaydb.core.segment.format.one.entry.reader.EntryReader
 import swaydb.data.order.KeyOrder
@@ -36,7 +36,12 @@ class FixedEntryReaderWriterSpec extends WordSpec with CommonAssertions {
 
   "write and read single Fixed entry" in {
     runThis(1000.times) {
-      val entry = randomFixedKeyValue(key = randomIntMax(), value = randomStringOption).toTransient
+      val entry = randomFixedKeyValue(
+        key = randomIntMax(),
+        value = randomStringOption,
+        updateFunctions = eitherOne(UpdateFunctions.empty, UpdateFunctions(randomSeqBytes())),
+        appliedFunctions = eitherOne(AppliedFunctions.empty, AppliedFunctions(randomSeqBytes()))
+      ).toTransient
       println("write: " + entry)
 
       val read = EntryReader.read(Reader(entry.indexEntryBytes), entry.valueEntryBytes.map(Reader(_)).getOrElse(Reader.empty), 0, 0, 0, None).assertGet
@@ -50,16 +55,26 @@ class FixedEntryReaderWriterSpec extends WordSpec with CommonAssertions {
       val keyValues = randomizedIntKeyValues(count = 1, addRandomGroups = false)
       val previous = keyValues.head
 
-      if(!previous.isRange)
-        println("debug")
-
       val duplicateValues = if (Random.nextBoolean()) previous.value else randomStringOption
       val duplicateDeadline = if (Random.nextBoolean()) previous.deadline else randomDeadlineOption
       val next =
         if (Random.nextBoolean())
-          Transient.Remove(key = randomIntMax(), deadline = duplicateDeadline, Some(previous), 0.1, AppliedFunctions.empty)
+          Transient.Remove(
+            key = randomIntMax(),
+            deadline = duplicateDeadline,
+            previous = Some(previous), falsePositiveRate = 0.1,
+            appliedFunctions = eitherOne(AppliedFunctions.empty, AppliedFunctions(randomSeqBytes()))
+          )
         else
-          Transient.Put(key = randomIntMax(), value = duplicateValues, deadline = duplicateDeadline, Some(previous), 0.1, compressDuplicateValues = true, AppliedFunctions.empty)
+          Transient.Put(
+            key = randomIntMax(),
+            value = duplicateValues,
+            deadline = duplicateDeadline,
+            previous = Some(previous),
+            falsePositiveRate = 0.1,
+            compressDuplicateValues = true,
+            appliedFunctions = eitherOne(AppliedFunctions.empty, AppliedFunctions(randomSeqBytes()))
+          )
 
       println("previous: " + previous)
       println("next: " + next)

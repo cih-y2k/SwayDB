@@ -22,8 +22,9 @@ package swaydb.core.map.serializer
 import scala.annotation.implicitNotFound
 import scala.concurrent.duration.Deadline
 import scala.util.Try
-import swaydb.core.data.{AppliedFunctions, UpdateFunctions, Value}
+import swaydb.core.data.Value
 import swaydb.core.io.reader.Reader
+import swaydb.core.segment.format.one.entry.reader.{MetaBlock, MetaReader}
 import swaydb.core.util.Bytes
 import swaydb.core.util.TimeUtil._
 import swaydb.data.slice.{Reader, Slice}
@@ -44,6 +45,19 @@ trait ValueSerializer[T] {
 
 object ValueSerializers {
 
+  def readMetaBlock(reader: Reader): Try[MetaBlock] =
+    reader.readIntUnsigned() flatMap {
+      metaBlockSize =>
+        if (metaBlockSize == 0)
+          MetaBlock.emptySuccess
+        else
+          reader.read(metaBlockSize) flatMap {
+            metaBlockBytes =>
+              //using MetaReader instead of NonEmptyMetaReader since the blockSize is already read.
+              MetaReader.readFunctions(Reader(metaBlockBytes))
+          }
+    }
+
   object LevelZero {
 
     def readDeadlineLevelZero(reader: Reader): Try[Option[Deadline]] =
@@ -55,43 +69,25 @@ object ValueSerializers {
             deadline.toDeadlineOption
       }
 
-    def readAppliedFunctionsLevelZero(reader: Reader): Try[AppliedFunctions] =
-      reader.readInt() flatMap {
-        appliedFunction =>
-          if (appliedFunction == 0)
-            AppliedFunctions.emptySuccess
-          else
-            reader.read(appliedFunction).flatMap(AppliedFunctions.read)
-      }
-
-    def readUpdatedFunctionsLevelZero(reader: Reader): Try[UpdateFunctions] =
-      reader.readInt() flatMap {
-        appliedFunction =>
-          if (appliedFunction == 0)
-            UpdateFunctions.emptySuccess
-          else
-            reader.read(appliedFunction).flatMap(UpdateFunctions.read)
-      }
-
     implicit object RemoveSerializerLevelZero extends ValueSerializer[Value.Remove] {
 
       override def write(value: Value.Remove, bytes: Slice[Byte]): Unit =
         bytes
           .addLong(value.deadline.toNanos)
-          .addInt(value.appliedFunctions.requiredBytes())
-          .addAll(value.appliedFunctions.toBytes())
+          //write the metaBlock, if metaBlock is empty write 0 bytes for indicate metaBlock is empty.
+          //MetaBlock already writes the metaBlock with the block size.
+          .addAll(MetaBlock.write(value.appliedFunctions).getOrElse(Slice.zeroUnsignedInt))
 
       override def bytesRequired(value: Value.Remove): Int =
         ByteSizeOf.long +
-          ByteSizeOf.int +
-          value.appliedFunctions.requiredBytes()
+          MetaBlock.sizeOf(value.appliedFunctions).max(Slice.zeroUnsignedInt.size)
 
       override def read(reader: Reader): Try[Value.Remove] =
         readDeadlineLevelZero(reader) flatMap {
           deadline =>
-            readAppliedFunctionsLevelZero(reader) map {
-              appliedFunctions =>
-                Value.Remove(deadline, appliedFunctions)
+            readMetaBlock(reader) map {
+              metaBlock =>
+                Value.Remove(deadline, metaBlock.appliedFunctions)
             }
         }
     }
@@ -103,15 +99,13 @@ object ValueSerializers {
           .addInt(value.value.map(_.size).getOrElse(0))
           .addAll(value.value.getOrElse(Slice.emptyBytes))
           .addLong(value.deadline.toNanos)
-          .addInt(value.appliedFunctions.requiredBytes())
-          .addAll(value.appliedFunctions.toBytes())
+          .addAll(MetaBlock.write(value.appliedFunctions).getOrElse(Slice.zeroUnsignedInt))
 
       override def bytesRequired(value: Value.Put): Int =
         ByteSizeOf.int +
           value.value.map(_.size).getOrElse(0) +
           ByteSizeOf.long +
-          ByteSizeOf.int +
-          value.appliedFunctions.requiredBytes()
+          MetaBlock.sizeOf(value.appliedFunctions).max(Slice.zeroUnsignedInt.size)
 
       override def read(reader: Reader): Try[Value.Put] =
         reader.readInt() flatMap {
@@ -119,9 +113,9 @@ object ValueSerializers {
             if (valueLength == 0)
               readDeadlineLevelZero(reader) flatMap {
                 deadline =>
-                  readAppliedFunctionsLevelZero(reader) map {
-                    appliedFunctions =>
-                      Value.Put(None, deadline, appliedFunctions)
+                  readMetaBlock(reader) map {
+                    metaBlock =>
+                      Value.Put(None, deadline, metaBlock.appliedFunctions)
                   }
               }
             else
@@ -129,9 +123,9 @@ object ValueSerializers {
                 value =>
                   readDeadlineLevelZero(reader) flatMap {
                     deadline =>
-                      readAppliedFunctionsLevelZero(reader) map {
-                        appliedFunctions =>
-                          Value.Put(Some(value), deadline, appliedFunctions)
+                      readMetaBlock(reader) map {
+                        metaBlock =>
+                          Value.Put(Some(value), deadline, metaBlock.appliedFunctions)
                       }
                   }
               }
@@ -145,15 +139,13 @@ object ValueSerializers {
           .addInt(value.value.map(_.size).getOrElse(0))
           .addAll(value.value.getOrElse(Slice.emptyBytes))
           .addLong(value.deadline.toNanos)
-          .addInt(value.appliedFunctions.requiredBytes())
-          .addAll(value.appliedFunctions.toBytes())
+          .addAll(MetaBlock.write(value.updateFunctions, value.appliedFunctions).getOrElse(Slice.zeroUnsignedInt))
 
       override def bytesRequired(value: Value.Update): Int =
         ByteSizeOf.int +
           value.value.map(_.size).getOrElse(0) +
           ByteSizeOf.long +
-          ByteSizeOf.int +
-          value.appliedFunctions.requiredBytes()
+          MetaBlock.sizeOf(value.updateFunctions, value.appliedFunctions).max(Slice.zeroUnsignedInt.size)
 
       override def read(reader: Reader): Try[Value.Update] =
         reader.readInt() flatMap {
@@ -161,12 +153,9 @@ object ValueSerializers {
             if (valueLength == 0)
               readDeadlineLevelZero(reader) flatMap {
                 deadline =>
-                  readUpdatedFunctionsLevelZero(reader) flatMap  {
-                    updatedFunctions =>
-                      readAppliedFunctionsLevelZero(reader) map {
-                        appliedFunctions =>
-                          Value.Update(None, deadline, updatedFunctions, appliedFunctions)
-                      }
+                  readMetaBlock(reader) map {
+                    metaBlock =>
+                      Value.Update(None, deadline, metaBlock.updateFunctions, metaBlock.appliedFunctions)
                   }
               }
             else
@@ -174,12 +163,9 @@ object ValueSerializers {
                 value =>
                   readDeadlineLevelZero(reader) flatMap {
                     deadline =>
-                      readUpdatedFunctionsLevelZero(reader) flatMap {
-                        updatedFunctions =>
-                          readAppliedFunctionsLevelZero(reader) map {
-                            appliedFunctions =>
-                              Value.Update(Some(value), deadline, updatedFunctions, appliedFunctions)
-                          }
+                      readMetaBlock(reader) map {
+                        metaBlock =>
+                          Value.Update(Some(value), deadline, metaBlock.updateFunctions, metaBlock.appliedFunctions)
                       }
                   }
               }
@@ -198,24 +184,6 @@ object ValueSerializers {
             deadline.toDeadlineOption
       }
 
-    def readAppliedFunctionsLevels(reader: Reader): Try[AppliedFunctions] =
-      reader.readIntUnsigned() flatMap {
-        appliedFunction =>
-          if (appliedFunction == 0)
-            AppliedFunctions.emptySuccess
-          else
-            reader.read(appliedFunction).flatMap(AppliedFunctions.read)
-      }
-
-    def readUpdatedFunctionsLevels(reader: Reader): Try[UpdateFunctions] =
-      reader.readIntUnsigned() flatMap {
-        appliedFunction =>
-          if (appliedFunction == 0)
-            UpdateFunctions.emptySuccess
-          else
-            reader.read(appliedFunction).flatMap(UpdateFunctions.read)
-      }
-
     implicit object PutSerializerLevels extends ValueSerializer[Value.Put] {
 
       override def write(value: Value.Put, bytes: Slice[Byte]): Unit =
@@ -223,14 +191,13 @@ object ValueSerializers {
           .addIntUnsigned(value.value.map(_.size).getOrElse(0))
           .addAll(value.value.getOrElse(Slice.emptyBytes))
           .addLongUnsigned(value.deadline.toNanos)
-          .addIntUnsigned(value.appliedFunctions.requiredBytes())
-          .addAll(value.appliedFunctions.toBytes())
+          .addAll(MetaBlock.write(value.appliedFunctions).getOrElse(Slice.zeroUnsignedInt))
 
       override def bytesRequired(value: Value.Put): Int =
         Bytes.sizeOf(value.value.map(_.size).getOrElse(0)) +
           value.value.map(_.size).getOrElse(0) +
           Bytes.sizeOf(value.deadline.toNanos) +
-          Bytes.sizeOfAndPlus(value.appliedFunctions.requiredBytes())
+          MetaBlock.sizeOf(value.appliedFunctions).max(Slice.zeroUnsignedInt.size)
 
       override def read(reader: Reader): Try[Value.Put] =
         reader.readIntUnsigned() flatMap {
@@ -238,9 +205,9 @@ object ValueSerializers {
             if (valueLength == 0)
               readDeadlineLevels(reader) flatMap {
                 deadline =>
-                  readAppliedFunctionsLevels(reader) map {
-                    appliedFunctions =>
-                      Value.Put(None, deadline, appliedFunctions)
+                  readMetaBlock(reader) map {
+                    meta =>
+                      Value.Put(None, deadline, meta.appliedFunctions)
                   }
               }
             else
@@ -248,9 +215,9 @@ object ValueSerializers {
                 value =>
                   readDeadlineLevels(reader) flatMap {
                     deadline =>
-                      readAppliedFunctionsLevels(reader) map {
-                        appliedFunctions =>
-                          Value.Put(Some(value), deadline, appliedFunctions)
+                      readMetaBlock(reader) map {
+                        meta =>
+                          Value.Put(Some(value), deadline, meta.appliedFunctions)
                       }
                   }
               }
@@ -262,17 +229,19 @@ object ValueSerializers {
       override def write(value: Value.Remove, bytes: Slice[Byte]): Unit =
         bytes
           .addLongUnsigned(value.deadline.toNanos)
-          .addIntUnsigned(value.appliedFunctions.requiredBytes())
-          .addAll(value.appliedFunctions.toBytes())
+          .addAll(MetaBlock.write(value.appliedFunctions).getOrElse(Slice.zeroUnsignedInt))
 
       override def bytesRequired(value: Value.Remove): Int =
         Bytes.sizeOf(value.deadline.toNanos) +
-          Bytes.sizeOfAndPlus(value.appliedFunctions.requiredBytes())
+          (MetaBlock.sizeOf(value.appliedFunctions).max(Slice.zeroUnsignedInt.size))
 
       override def read(reader: Reader): Try[Value.Remove] =
-        readDeadlineLevels(reader) map {
+        readDeadlineLevels(reader) flatMap {
           deadline =>
-            Value.Remove(deadline)
+            readMetaBlock(reader) map {
+              meta =>
+                Value.Remove(deadline, meta.appliedFunctions)
+            }
         }
     }
 
@@ -283,17 +252,13 @@ object ValueSerializers {
           .addIntUnsigned(value.value.map(_.size).getOrElse(0))
           .addAll(value.value.getOrElse(Slice.emptyBytes))
           .addLongUnsigned(value.deadline.toNanos)
-          .addIntUnsigned(value.updateFunctions.requiredBytes())
-          .addAll(value.updateFunctions.toBytes())
-          .addIntUnsigned(value.appliedFunctions.requiredBytes())
-          .addAll(value.appliedFunctions.toBytes())
+          .addAll(MetaBlock.write(value.updateFunctions, value.appliedFunctions).getOrElse(Slice.zeroUnsignedInt))
 
       override def bytesRequired(value: Value.Update): Int =
         Bytes.sizeOf(value.value.map(_.size).getOrElse(0)) +
           value.value.map(_.size).getOrElse(0) +
           Bytes.sizeOf(value.deadline.toNanos) +
-          Bytes.sizeOfAndPlus(value.updateFunctions.requiredBytes()) +
-          Bytes.sizeOfAndPlus(value.appliedFunctions.requiredBytes())
+          MetaBlock.sizeOf(value.updateFunctions, value.appliedFunctions).max(Slice.zeroUnsignedInt.size)
 
       override def read(reader: Reader): Try[Value.Update] =
         reader.readIntUnsigned() flatMap {
@@ -301,12 +266,9 @@ object ValueSerializers {
             if (valueLength == 0)
               readDeadlineLevels(reader) flatMap {
                 deadline =>
-                  readUpdatedFunctionsLevels(reader) flatMap {
-                    updatedFunctions =>
-                      readAppliedFunctionsLevels(reader) map {
-                        appliedFunctions =>
-                          Value.Update(None, deadline, updatedFunctions, appliedFunctions)
-                      }
+                  readMetaBlock(reader) map {
+                    metaBlock =>
+                      Value.Update(None, deadline, metaBlock.updateFunctions, metaBlock.appliedFunctions)
                   }
               }
             else
@@ -314,12 +276,9 @@ object ValueSerializers {
                 value =>
                   readDeadlineLevels(reader) flatMap {
                     deadline =>
-                      readUpdatedFunctionsLevels(reader) flatMap {
-                        updatedFunctions =>
-                          readAppliedFunctionsLevels(reader) map {
-                            appliedFunctions =>
-                              Value.Update(Some(value), deadline, updatedFunctions, appliedFunctions)
-                          }
+                      readMetaBlock(reader) map {
+                        metaBlock =>
+                          Value.Update(Some(value), deadline, metaBlock.updateFunctions, metaBlock.appliedFunctions)
                       }
                   }
               }

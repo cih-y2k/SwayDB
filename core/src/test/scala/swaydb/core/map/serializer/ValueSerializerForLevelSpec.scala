@@ -20,12 +20,12 @@
 package swaydb.core.map.serializer
 
 import org.scalatest.{Matchers, WordSpec}
-import swaydb.core.{CommonAssertions, TryAssert}
+import scala.concurrent.duration._
 import swaydb.core.data.Value
+import swaydb.core.{CommonAssertions, TryAssert}
 import swaydb.data.slice.Slice
 import swaydb.serializers.Default._
 import swaydb.serializers._
-import scala.concurrent.duration._
 
 class ValueSerializerForLevelSpec extends WordSpec with Matchers with TryAssert with CommonAssertions {
 
@@ -117,6 +117,32 @@ class ValueSerializerForLevelSpec extends WordSpec with Matchers with TryAssert 
 
       ValueSerializer.write(value)(bytes)
       ValueSerializer.read[Value.Update](bytes).assertGet shouldBe value
+    }
+  }
+
+  "random" in {
+    runThis(100.times) {
+      val fromValue = randomFromValue()
+
+      fromValue match {
+        case value: Value.Remove =>
+          val bytes = Slice.create[Byte](ValueSerializer.bytesRequired(value))
+
+          ValueSerializer.write(value)(bytes)
+          ValueSerializer.read[Value.Remove](bytes).assertGet shouldBe value
+
+        case value: Value.Put =>
+          val bytes = Slice.create[Byte](ValueSerializer.bytesRequired(value))
+
+          ValueSerializer.write(value)(bytes)
+          ValueSerializer.read[Value.Put](bytes).assertGet shouldBe value
+
+        case value: Value.Update =>
+          val bytes = Slice.create[Byte](ValueSerializer.bytesRequired(value))
+
+          ValueSerializer.write(value)(bytes)
+          ValueSerializer.read[Value.Update](bytes).assertGet shouldBe value
+      }
     }
   }
 

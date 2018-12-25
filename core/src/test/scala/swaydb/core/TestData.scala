@@ -32,6 +32,13 @@ import scala.util.Random
 
 trait TestData extends TryAssert {
 
+  //generate random size of sequence bytes.
+  def randomSeqBytes(max: Int = 10): Seq[Slice[Byte]] =
+    (0 to randomIntMax(max)) map {
+      i =>
+        Slice.writeIntUnsigned(i)
+    }
+
   def randomStringOption: Option[Slice[Byte]] =
     if (Random.nextBoolean())
       Some(randomCharacters())
@@ -104,13 +111,25 @@ trait TestData extends TryAssert {
     else
       None
 
+  def randomAppliedFunctions() =
+    if (Random.nextBoolean())
+      AppliedFunctions(randomSeqBytes())
+    else
+      AppliedFunctions.empty
+
+  def randomUpdatedFunctions() =
+    if (Random.nextBoolean())
+      UpdateFunctions(randomSeqBytes())
+    else
+      UpdateFunctions.empty
+
   def randomFromValue(): Value.FromValue =
     if (Random.nextBoolean())
-      Value.Put(randomStringOption, randomDeadlineOption, AppliedFunctions.empty)
+      Value.Put(randomStringOption, randomDeadlineOption, randomAppliedFunctions())
     else if (Random.nextBoolean())
-      Value.Remove(randomDeadlineOption)
+      Value.Remove(randomDeadlineOption, randomAppliedFunctions())
     else
-      Value.Update(randomStringOption, randomDeadlineOption)
+      Value.Update(randomStringOption, randomDeadlineOption, randomUpdatedFunctions(), randomAppliedFunctions())
 
   def randomRangeValue(): Value.RangeValue =
     if (Random.nextBoolean())
@@ -217,7 +236,9 @@ trait TestData extends TryAssert {
                          addRandomRemoveDeadlines: Boolean = false,
                          addRandomPutDeadlines: Boolean = false,
                          addRandomRanges: Boolean = false,
-                         addRandomGroups: Boolean = false): Slice[KeyValue.WriteOnly] = {
+                         addRandomGroups: Boolean = false,
+                         addRandomAppliedFunctions: Boolean = false,
+                         addRandomUpdatedFunctions: Boolean = false): Slice[KeyValue.WriteOnly] = {
     //    println(
     //      s"""
     //        |nonValue : $nonValue
@@ -240,16 +261,20 @@ trait TestData extends TryAssert {
           key,
           previous = slice.lastOption,
           deadline = if (addRandomPutDeadlines && Random.nextBoolean()) Some(10.seconds.fromNow) else None,
-          compressDuplicateValues = true
+          compressDuplicateValues = true,
+          value = None,
+          falsePositiveRate = 0.1,
+          appliedFunctions = randomAppliedFunctions()
         )
         key = key + 1
       } else if ((addRandomRemoves || addRandomRanges || addRandomGroups) && Random.nextBoolean()) {
         if (addRandomRemoves) {
           slice add Transient.Remove(
             key: Slice[Byte],
-            0.1,
+            falsePositiveRate = 0.1,
             previous = slice.lastOption,
-            deadline = if (addRandomRemoveDeadlines && Random.nextBoolean()) Some(10.seconds.fromNow) else None
+            deadline = if (addRandomRemoveDeadlines && Random.nextBoolean()) Some(10.seconds.fromNow) else None,
+            appliedFunctions = if (addRandomAppliedFunctions && Random.nextBoolean()) AppliedFunctions(randomSeqBytes()) else AppliedFunctions.empty
           )
 
           key = key + 1
@@ -283,6 +308,8 @@ trait TestData extends TryAssert {
               addRandomRemoveDeadlines = addRandomRemoveDeadlines,
               addRandomPutDeadlines = addRandomPutDeadlines,
               addRandomRanges = addRandomRanges,
+              addRandomAppliedFunctions = addRandomAppliedFunctions,
+              addRandomUpdatedFunctions = addRandomUpdatedFunctions,
               addRandomGroups = false //do not create more inner groups.
             )
 
@@ -303,7 +330,7 @@ trait TestData extends TryAssert {
           previous = slice.lastOption,
           compressDuplicateValues = true,
           deadline = if (addRandomPutDeadlines && Random.nextBoolean()) Some(10.seconds.fromNow) else None,
-          appliedFunctions = AppliedFunctions.empty
+          appliedFunctions = if(addRandomAppliedFunctions) randomAppliedFunctions() else AppliedFunctions.empty
         )
         key = key + 1
       }
