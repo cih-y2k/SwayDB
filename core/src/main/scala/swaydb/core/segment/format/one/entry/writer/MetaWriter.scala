@@ -26,7 +26,8 @@ import swaydb.data.slice.Slice
 object MetaWriter {
 
   val functionsMetaId: Int = 0
-  val fixedMetaId: Int = 1
+  val updatedFunctionMetaId: Int = 1
+  val appliedFunctionMetaId: Int = 2
 
   /**
     * Writes meta block for a key-value.
@@ -41,43 +42,62 @@ object MetaWriter {
         val updateFunctionRequiredBytes = update.updateFunctions.requiredBytes()
         val appliedFunctionsRequiredBytes = update.appliedFunctions.requiredBytes()
 
-        val requiredBytes =
+        val totalRequiredBytes =
           Bytes.sizeOf(functionsMetaId) + //format id bytes
             Bytes.sizeOf(updateFunctionRequiredBytes) +
             updateFunctionRequiredBytes +
-            Bytes.sizeOf(appliedFunctionsRequiredBytes) +
             appliedFunctionsRequiredBytes
+
+        //blockSize|id|updateFunctionSize|updateFunctionBytes|appliedFunctionsBytes
 
         val bytes =
           Slice
-            .create[Byte](Bytes.sizeOf(requiredBytes) + requiredBytes) //also add the size of the block
-            .addIntUnsigned(requiredBytes)
+            .create[Byte](Bytes.sizeOf(totalRequiredBytes) + totalRequiredBytes) //also add the size of the block
+            .addIntUnsigned(totalRequiredBytes)
             .addIntUnsigned(functionsMetaId)
             .addIntUnsigned(updateFunctionRequiredBytes)
             .addAll(update.updateFunctions.toBytes())
-            .addIntUnsigned(appliedFunctionsRequiredBytes)
             .addAll(update.appliedFunctions.toBytes())
+
+        Some(bytes)
+
+      case update: Transient.Update if update.updateFunctions.nonEmpty =>
+        val updateFunctionRequiredBytes = update.updateFunctions.requiredBytes()
+
+        val totalRequiredBytes =
+          Bytes.sizeOf(updatedFunctionMetaId) + //format id bytes
+            updateFunctionRequiredBytes
+
+        //blockSize|id|updateFunctionBytes
+
+        val bytes =
+          Slice
+            .create[Byte](Bytes.sizeOf(totalRequiredBytes) + totalRequiredBytes) //also add the size of the block
+            .addIntUnsigned(totalRequiredBytes)
+            .addIntUnsigned(updatedFunctionMetaId)
+            .addAll(update.updateFunctions.toBytes())
 
         Some(bytes)
 
       case fixed: KeyValue.WriteOnly.Fixed if fixed.appliedFunctions.nonEmpty =>
         val appliedFunctionsRequiredBytes = fixed.appliedFunctions.requiredBytes()
 
-        val requiredBytes =
-          Bytes.sizeOf(fixedMetaId) + //1 byte for the format
-            Bytes.sizeOf(appliedFunctionsRequiredBytes) +
+        val totalRequiredBytes =
+          Bytes.sizeOf(appliedFunctionMetaId) + //1 byte for the format
             appliedFunctionsRequiredBytes
+
+        //blockSize|id|appliedFunctionsBytes
 
         val bytes =
           Slice
-            .create[Byte](Bytes.sizeOf(requiredBytes) + requiredBytes)
-            .addIntUnsigned(requiredBytes)
-            .addIntUnsigned(fixedMetaId)
-            .addIntUnsigned(appliedFunctionsRequiredBytes)
+            .create[Byte](Bytes.sizeOf(totalRequiredBytes) + totalRequiredBytes)
+            .addIntUnsigned(totalRequiredBytes)
+            .addIntUnsigned(appliedFunctionMetaId)
             .addAll(fixed.appliedFunctions.toBytes())
 
         Some(bytes)
 
+      //otherwise meta block is not required - return None.
       case _: KeyValue.WriteOnly.Range | _: KeyValue.WriteOnly.Group | _: KeyValue.WriteOnly.Fixed =>
         None
     }

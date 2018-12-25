@@ -21,7 +21,7 @@ package swaydb.core.segment.format.one.entry.reader
 
 import scala.annotation.implicitNotFound
 import scala.util.{Failure, Try}
-import swaydb.core.data.{AppliedFunctions, KeyValue, UpdateFunctions}
+import swaydb.core.data.{AppliedFunctions, UpdateFunctions}
 import swaydb.core.io.reader.Reader
 import swaydb.core.segment.format.one.entry.id.EntryId
 import swaydb.core.segment.format.one.entry.writer.MetaWriter
@@ -30,8 +30,7 @@ import swaydb.data.slice.Reader
 
 @implicitNotFound("Type class implementation not found for MetaReader of type ${T}")
 sealed trait MetaReader[-T] {
-  def read(indexReader: Reader,
-           previous: Option[KeyValue.ReadOnly]): Try[Option[MetaBytes]]
+  def read(indexReader: Reader): Try[Option[MetaBlock]]
 }
 
 object MetaReader {
@@ -54,53 +53,45 @@ object MetaReader {
         }
     }
 
-  def readMetaBlock(formatId: Int, metaBlockReader: Reader) =
-    if (formatId == MetaWriter.functionsMetaId)
-      readUpdateFunctions(metaBlockReader) flatMap {
-        updatedFunctions =>
-          readAppliedFunctions(metaBlockReader) map {
-            appliedFunctions =>
-              Some(
-                MetaBytes(
-                  updateFunctions = updatedFunctions,
-                  appliedFunctions = appliedFunctions
-                )
-              )
+  def readFunctions(reader: Reader): Try[MetaBlock] =
+    reader.readIntUnsigned() flatMap {
+      formatId =>
+        if (formatId == MetaWriter.functionsMetaId)
+          reader.readIntUnsigned() flatMap {
+            size =>
+              reader.read(size) flatMap {
+                updateFunctions =>
+                  reader.readRemaining() flatMap {
+                    appliedFunctions =>
+                      MetaBlock(
+                        updateFunctionBytes = updateFunctions,
+                        appliedFunctionsBytes = appliedFunctions
+                      )
+                  }
+              }
           }
-      }
-    else if (formatId == MetaWriter.functionsMetaId)
-      readAppliedFunctions(metaBlockReader) map {
-        appliedFunctions =>
-          Some(
-            MetaBytes(
-              updateFunctions = UpdateFunctions.empty,
-              appliedFunctions = appliedFunctions
-            )
-          )
-      }
-    else
-      Failure(new Exception("Meta.NonEmpty on an empty meta block."))
+        else if (formatId == MetaWriter.updatedFunctionMetaId)
+          reader.readRemaining() flatMap MetaBlock.updateFunction
+
+        else if (formatId == MetaWriter.appliedFunctionMetaId)
+          reader.readRemaining() flatMap MetaBlock.appliedFunction
+
+        else
+          Failure(new Exception("Meta.NonEmpty on an empty meta block."))
+    }
 
   implicit object EmptyMetaReader extends MetaReader[EntryId.Meta.Empty] {
-    override def read(indexReader: Reader,
-                      previous: Option[KeyValue.ReadOnly]): Try[Option[MetaBytes]] =
+    override def read(indexReader: Reader): Try[Option[MetaBlock]] =
       TryUtil.successNone
   }
 
   implicit object NonEmptyMetaReader extends MetaReader[EntryId.Meta.NonEmpty] {
-    override def read(indexReader: Reader,
-                      previous: Option[KeyValue.ReadOnly]): Try[Option[MetaBytes]] =
+    override def read(indexReader: Reader): Try[Option[MetaBlock]] =
       indexReader.readIntUnsigned() flatMap {
         blockSize =>
           indexReader.read(blockSize) flatMap {
-            metaBlock =>
-              metaBlock.readIntUnsigned() flatMap {
-                formatId =>
-                  readMetaBlock(
-                    formatId = formatId,
-                    metaBlockReader = Reader(metaBlock)
-                  )
-              }
+            functionBlock =>
+              readFunctions(Reader(functionBlock)) map (Some(_))
           }
       }
   }

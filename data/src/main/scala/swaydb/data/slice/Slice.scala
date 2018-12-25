@@ -195,7 +195,7 @@ object Slice {
       slice
     }
 
-    def readIntSigned(int: Int): Try[Int] =
+    def readIntSigned(): Try[Int] =
       ByteUtil.readSignedInt(slice)
 
     def addIntUnsigned(int: Int): Slice[Byte] = {

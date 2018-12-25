@@ -65,13 +65,22 @@ trait TestData extends TryAssert {
 
   def randomFixedKeyValue(key: Slice[Byte],
                           value: Option[Slice[Byte]] = randomStringOption,
-                          deadline: Option[Deadline] = randomDeadlineOption): Memory.Fixed =
+                          deadline: Option[Deadline] = randomDeadlineOption,
+                          updateFunctions: UpdateFunctions = UpdateFunctions.empty,
+                          appliedFunctions: AppliedFunctions = AppliedFunctions.empty): Memory.Fixed =
     if (Random.nextBoolean())
-      Memory.Put(key, value, deadline)
+      Memory.Put(key, value, deadline, appliedFunctions)
     else if (Random.nextBoolean())
-      Memory.Remove(key, deadline, AppliedFunctions.empty)
+      Memory.Remove(key, deadline, appliedFunctions)
     else
-      Memory.Update(key, value, deadline)
+      randomUpdateKeyValue(key, value, deadline, updateFunctions, appliedFunctions)
+
+  def randomUpdateKeyValue(key: Slice[Byte],
+                           value: Option[Slice[Byte]] = randomStringOption,
+                           deadline: Option[Deadline] = randomDeadlineOption,
+                           updateFunctions: UpdateFunctions = UpdateFunctions.empty,
+                           appliedFunctions: AppliedFunctions = AppliedFunctions.empty): Memory.Update =
+    Memory.Update(key, value, deadline, updateFunctions, appliedFunctions)
 
   def randomCompression(minCompressionPercentage: Double = Double.MinValue): CompressionInternal =
     CompressionInternal.random(minCompressionPercentage = minCompressionPercentage)

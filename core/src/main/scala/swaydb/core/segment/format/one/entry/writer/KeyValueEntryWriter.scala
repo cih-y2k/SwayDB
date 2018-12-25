@@ -51,7 +51,7 @@ object KeyValueEntryWriter {
                 current = current,
                 compressDuplicateValues = compressDuplicateValues,
                 entryId = if (metaBytes.isDefined) entryId.nonEmptyMeta.keyFullyCompressed else entryId.emptyMeta.keyFullyCompressed,
-                plusSize = metaBytes.size + sizeOf(current.key.size) //write the size of keys that were compressed.
+                plusSize = metaBytes.map(_.size).getOrElse(0) + sizeOf(current.key.size) //write the size of keys that were compressed.
               )
 
             //            assert(indexBytes.isFull, s"indexSlice is not full actual: ${indexBytes.written} - expected: ${indexBytes.size}")
@@ -68,7 +68,7 @@ object KeyValueEntryWriter {
                 current = current,
                 compressDuplicateValues = compressDuplicateValues,
                 entryId = if (metaBytes.isDefined) entryId.nonEmptyMeta.keyPartiallyCompressed else entryId.emptyMeta.keyPartiallyCompressed,
-                plusSize = metaBytes.size + sizeOf(commonBytes) + remainingBytes.size //write the size of keys compressed and also the uncompressed Bytes
+                plusSize = metaBytes.map(_.size).getOrElse(0) + sizeOf(commonBytes) + remainingBytes.size //write the size of keys compressed and also the uncompressed Bytes
               )
 
             val bytes =
@@ -86,7 +86,7 @@ object KeyValueEntryWriter {
           current = current,
           compressDuplicateValues = compressDuplicateValues,
           entryId = if (metaBytes.isDefined) entryId.nonEmptyMeta.keyUncompressed else entryId.emptyMeta.keyUncompressed,
-          plusSize = metaBytes.size + current.key.size //write key bytes.
+          plusSize = metaBytes.map(_.size).getOrElse(0) + current.key.size //write key bytes.
         )
 
       val bytes =

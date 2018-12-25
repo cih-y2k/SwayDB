@@ -37,7 +37,7 @@ object RemoveReader {
                                                          metaReader: MetaReader[T]): Try[Persistent.Remove] =
     deadlineReader.read(indexReader, previous) flatMap {
       deadline =>
-        metaReader.read(indexReader, previous) flatMap {
+        metaReader.read(indexReader) flatMap {
           metaBytes =>
             keyReader.read(indexReader, previous) map {
               key =>

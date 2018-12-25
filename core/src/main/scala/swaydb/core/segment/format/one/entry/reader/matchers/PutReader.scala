@@ -43,7 +43,7 @@ object PutReader {
       deadline =>
         valueBytesReader.read(indexReader, previous) flatMap {
           valueOffsetAndLength =>
-            metaReader.read(indexReader, previous) flatMap {
+            metaReader.read(indexReader) flatMap {
               metaBytes =>
                 keyReader.read(indexReader, previous) map {
                   key =>
