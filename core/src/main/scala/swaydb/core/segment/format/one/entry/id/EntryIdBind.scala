@@ -3,7 +3,7 @@ package swaydb.core.segment.format.one.entry.id
 import scala.annotation.implicitNotFound
 import swaydb.core.data.Transient
 
-@implicitNotFound("Type class implementation not found for TransientToEntryId of type ${T}")
+@implicitNotFound("Type class implementation not found for EntryIdBind of type ${T}")
 sealed trait EntryIdBind[T] {
   val entryId: GeneratedEntryId
 }

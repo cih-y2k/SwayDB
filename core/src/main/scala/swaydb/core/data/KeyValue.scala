@@ -28,7 +28,6 @@ import swaydb.core.group.compression.{GroupCompressor, GroupDecompressor, GroupK
 import swaydb.core.io.reader.Reader
 import swaydb.core.map.serializer.RangeValueSerializer
 import swaydb.core.queue.KeyValueLimiter
-import swaydb.core.segment.format.one.entry.id._
 import swaydb.core.segment.format.one.entry.writer._
 import swaydb.core.segment.{SegmentCache, SegmentCacheInitializer}
 import swaydb.core.util.CollectionUtil._
@@ -357,16 +356,6 @@ private[swaydb] object Memory {
           Value.Remove(remove.deadline)
 
       }
-
-    //    def toRangeValue: Value.RangeValue =
-    //      memory match {
-    //        case put: Put =>
-    //          Value.Put(put.value, put.deadline, put.appliedFunctions)
-    //        case update: Update =>
-    //          Value.Update(update.value, update.deadline, update.appliedFunctions)
-    //        case remove: Remove =>
-    //          Value.Remove(remove.deadline)
-    //      }
   }
 
   sealed trait Fixed extends Memory.SegmentResponse with KeyValue.ReadOnly.Fixed
@@ -968,7 +957,7 @@ private[core] object Transient {
     override val isGroup: Boolean = false
     override val isRange: Boolean = false
 
-    val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition): (Slice[Byte], Option[Slice[Byte]], Int, Int) =
+    val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition) =
       KeyValueEntryWriter.write(
         current = this,
         compressDuplicateValues = compressDuplicateValues
@@ -1186,7 +1175,7 @@ private[core] object Transient {
     override val isGroup: Boolean = false
     override val isRange: Boolean = false
 
-    val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition): (Slice[Byte], Option[Slice[Byte]], Int, Int) =
+    val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition) =
       KeyValueEntryWriter.write(
         current = this,
         compressDuplicateValues = compressDuplicateValues
@@ -1295,7 +1284,7 @@ private[core] object Transient {
     override val isGroup: Boolean = false
     override val deadline: Option[Deadline] = None
 
-    val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition): (Slice[Byte], Option[Slice[Byte]], Int, Int) =
+    val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition) =
       KeyValueEntryWriter.write(
         current = this,
         //It's highly likely that two sequential key-values within the same range have the same value after the range split occurs. So this is always set to true.
@@ -1379,7 +1368,7 @@ private[core] object Transient {
     override val isRange: Boolean = keyValues.last.stats.hasRange
     override val isGroup: Boolean = true
     override val value: Option[Slice[Byte]] = Some(compressedKeyValues)
-    val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition): (Slice[Byte], Option[Slice[Byte]], Int, Int) =
+    val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition) =
       KeyValueEntryWriter.write(
         current = this,
         //it's highly unlikely that 2 groups after compression will have duplicate values.
