@@ -32,11 +32,6 @@ import scala.util.Random
 
 trait TestData extends TryAssert {
 
-  /**
-    * Sequential time bytes generator.
-    */
-  private val timeCount = new AtomicLong(0)
-
   def randomStringOption: Option[Slice[Byte]] =
     if (Random.nextBoolean())
       Some(randomCharacters())
@@ -189,8 +184,7 @@ trait TestData extends TryAssert {
                              addRandomRanges: Boolean = Random.nextBoolean(),
                              addRandomRemoveDeadlines: Boolean = Random.nextBoolean(),
                              addRandomPutDeadlines: Boolean = Random.nextBoolean(),
-                             addRandomGroups: Boolean = Random.nextBoolean(),
-                             addRandomTimes: Boolean = Random.nextBoolean()): Slice[KeyValue.WriteOnly] =
+                             addRandomGroups: Boolean = Random.nextBoolean()): Slice[KeyValue.WriteOnly] =
     randomIntKeyValues(
       count = count,
       startId = startId,
@@ -200,8 +194,7 @@ trait TestData extends TryAssert {
       addRandomRanges = addRandomRanges,
       addRandomRemoveDeadlines = addRandomRemoveDeadlines,
       addRandomPutDeadlines = addRandomPutDeadlines,
-      addRandomGroups = addRandomGroups,
-      addRandomTimes = addRandomTimes
+      addRandomGroups = addRandomGroups
     )
 
   def groupsOnly(count: Int = 5,
@@ -224,8 +217,7 @@ trait TestData extends TryAssert {
                          addRandomRemoveDeadlines: Boolean = false,
                          addRandomPutDeadlines: Boolean = false,
                          addRandomRanges: Boolean = false,
-                         addRandomGroups: Boolean = false,
-                         addRandomTimes: Boolean = false): Slice[KeyValue.WriteOnly] = {
+                         addRandomGroups: Boolean = false): Slice[KeyValue.WriteOnly] = {
     //    println(
     //      s"""
     //        |nonValue : $nonValue
@@ -291,7 +283,6 @@ trait TestData extends TryAssert {
               addRandomRemoveDeadlines = addRandomRemoveDeadlines,
               addRandomPutDeadlines = addRandomPutDeadlines,
               addRandomRanges = addRandomRanges,
-              addRandomTimes = addRandomTimes,
               addRandomGroups = false //do not create more inner groups.
             )
 

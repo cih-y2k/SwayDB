@@ -20,7 +20,7 @@
 package swaydb.core.segment.format.one.entry.writer
 
 import swaydb.core.data.KeyValue
-import swaydb.core.segment.format.one.entry.id.GeneratedEntryId
+import swaydb.core.segment.format.one.entry.id.{EntryIdBind, GeneratedEntryId}
 import swaydb.core.util.Bytes._
 import swaydb.data.slice.Slice
 
@@ -30,13 +30,12 @@ object KeyValueEntryWriter {
     * Returns the index bytes and value bytes for the key-value and also the used
     * value offset information for writing the next key-value.
     *
-    * @param entryId                 [[GeneratedEntryId]] for this key-value's type.
+    * @param bind                    [[GeneratedEntryId]] for this key-value's type.
     * @param compressDuplicateValues Compresses duplicate values if set to true.
     * @return indexEntry, valueBytes, valueOffsetBytes, nextValuesOffsetPosition
     */
-  def write(current: KeyValue.WriteOnly,
-            entryId: GeneratedEntryId,
-            compressDuplicateValues: Boolean): (Slice[Byte], Option[Slice[Byte]], Int, Int) = {
+  def write[T <: KeyValue.WriteOnly](current: T,
+                                     compressDuplicateValues: Boolean)(implicit bind: EntryIdBind[T]): (Slice[Byte], Option[Slice[Byte]], Int, Int) = {
     //the chuck to write for applied functions. This get inserted before the key bytes.
     //The result should also contain the unsigned Int size of the total bytes inserted as the head bytes
     val metaBytes = MetaWriter.write(current)
@@ -50,15 +49,17 @@ object KeyValueEntryWriter {
               ValueWriter.write(
                 current = current,
                 compressDuplicateValues = compressDuplicateValues,
-                entryId = if (metaBytes.isDefined) entryId.nonEmptyMeta.keyFullyCompressed else entryId.emptyMeta.keyFullyCompressed,
+                entryId = if (metaBytes.isDefined) bind.entryId.nonEmptyMeta.keyFullyCompressed else bind.entryId.emptyMeta.keyFullyCompressed,
                 plusSize = metaBytes.map(_.size).getOrElse(0) + sizeOf(current.key.size) //write the size of keys that were compressed.
               )
 
-            //            assert(indexBytes.isFull, s"indexSlice is not full actual: ${indexBytes.written} - expected: ${indexBytes.size}")
-            //            valueBytes foreach (valueBytes => assert(valueBytes.isFull, s"valueBytes is not full actual: ${valueBytes.written} - expected: ${valueBytes.size}"))
-            val bytes = indexBytes
-              .addAll(metaBytes.getOrElse(Slice.emptyBytes))
-              .addIntUnsigned(current.key.size)
+//            assert(indexBytes.isFull, s"indexSlice is not full actual: ${indexBytes.written} - expected: ${indexBytes.size}")
+//            valueBytes foreach (valueBytes => assert(valueBytes.isFull, s"valueBytes is not full actual: ${valueBytes.written} - expected: ${valueBytes.size}"))
+//
+            val bytes =
+              indexBytes
+                .addAll(metaBytes.getOrElse(Slice.emptyBytes))
+                .addIntUnsigned(current.key.size)
 
             (bytes, valueBytes, valueStartOffset, valueEndOffset)
 
@@ -67,7 +68,7 @@ object KeyValueEntryWriter {
               ValueWriter.write(
                 current = current,
                 compressDuplicateValues = compressDuplicateValues,
-                entryId = if (metaBytes.isDefined) entryId.nonEmptyMeta.keyPartiallyCompressed else entryId.emptyMeta.keyPartiallyCompressed,
+                entryId = if (metaBytes.isDefined) bind.entryId.nonEmptyMeta.keyPartiallyCompressed else bind.entryId.emptyMeta.keyPartiallyCompressed,
                 plusSize = metaBytes.map(_.size).getOrElse(0) + sizeOf(commonBytes) + remainingBytes.size //write the size of keys compressed and also the uncompressed Bytes
               )
 
@@ -85,7 +86,7 @@ object KeyValueEntryWriter {
         ValueWriter.write(
           current = current,
           compressDuplicateValues = compressDuplicateValues,
-          entryId = if (metaBytes.isDefined) entryId.nonEmptyMeta.keyUncompressed else entryId.emptyMeta.keyUncompressed,
+          entryId = if (metaBytes.isDefined) bind.entryId.nonEmptyMeta.keyUncompressed else bind.entryId.emptyMeta.keyUncompressed,
           plusSize = metaBytes.map(_.size).getOrElse(0) + current.key.size //write key bytes.
         )
 

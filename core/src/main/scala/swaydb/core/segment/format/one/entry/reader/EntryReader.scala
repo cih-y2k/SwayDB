@@ -37,9 +37,17 @@ object EntryReader {
            previous: Option[Persistent])(implicit keyOrder: KeyOrder[Slice[Byte]]): Try[Persistent] =
     indexReader.readIntUnsigned() flatMap {
       id =>
-        PutEntryId.contains(id) map {
-          id =>
-            PutEmptyMetaEntryIdReader.read(
+        if (PutEntryId.contains(id))
+          PutEmptyMetaEntryIdReader.read(
+            id = id,
+            indexReader = indexReader,
+            valueReader = valueReader,
+            indexOffset = indexOffset,
+            nextIndexOffset = nextIndexOffset,
+            nextIndexSize = nextIndexSize,
+            previous = previous
+          ) getOrElse {
+            PutNonEmptyMetaEntryIdReader.read(
               id = id,
               indexReader = indexReader,
               valueReader = valueReader,
@@ -47,111 +55,69 @@ object EntryReader {
               nextIndexOffset = nextIndexOffset,
               nextIndexSize = nextIndexSize,
               previous = previous
-            ) orElse {
-              PutNonEmptyMetaEntryIdReader.read(
-                id = id,
-                indexReader = indexReader,
-                valueReader = valueReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              )
-            }
-        } orElse {
-          GroupEntryId.contains(id) map {
-            id =>
-              GroupEmptyMetaEntryIdReader.read(
-                id = id,
-                indexReader = indexReader,
-                valueReader = valueReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              ) orElse {
-                GroupNonEmptyMetaEntryIdReader.read(
-                  id = id,
-                  indexReader = indexReader,
-                  valueReader = valueReader,
-                  indexOffset = indexOffset,
-                  nextIndexOffset = nextIndexOffset,
-                  nextIndexSize = nextIndexSize,
-                  previous = previous
-                )
-              }
+            ) getOrElse Failure(SegmentException.InvalidEntryId(id))
           }
-        } orElse {
-          UpdateEntryId.contains(id) map {
-            id =>
-              UpdateEmptyMetaEntryIdReader.read(
-                id = id,
-                indexReader = indexReader,
-                valueReader = valueReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              ) orElse {
-                UpdateNonEmptyMetaEntryIdReader.read(
-                  id = id,
-                  indexReader = indexReader,
-                  valueReader = valueReader,
-                  indexOffset = indexOffset,
-                  nextIndexOffset = nextIndexOffset,
-                  nextIndexSize = nextIndexSize,
-                  previous = previous
-                )
-              }
+        else if (UpdateEntryId.contains(id))
+          UpdateEmptyMetaEntryIdReader.read(
+            id = id,
+            indexReader = indexReader,
+            valueReader = valueReader,
+            indexOffset = indexOffset,
+            nextIndexOffset = nextIndexOffset,
+            nextIndexSize = nextIndexSize,
+            previous = previous
+          ) getOrElse {
+            UpdateNonEmptyMetaEntryIdReader.read(
+              id = id,
+              indexReader = indexReader,
+              valueReader = valueReader,
+              indexOffset = indexOffset,
+              nextIndexOffset = nextIndexOffset,
+              nextIndexSize = nextIndexSize,
+              previous = previous
+            ) getOrElse Failure(SegmentException.InvalidEntryId(id))
           }
-        } orElse {
-          RemoveEntryId.contains(id) map {
-            id =>
-              RemoveEmptyMetaEntryIdReader.read(
-                id = id,
-                indexReader = indexReader,
-                valueReader = valueReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              ) orElse {
-                RemoveNonEmptyMetaEntryIdReader.read(
-                  id = id,
-                  indexReader = indexReader,
-                  valueReader = valueReader,
-                  indexOffset = indexOffset,
-                  nextIndexOffset = nextIndexOffset,
-                  nextIndexSize = nextIndexSize,
-                  previous = previous
-                )
-              }
+        else if (RemoveEntryId.contains(id))
+          RemoveEmptyMetaEntryIdReader.read(
+            id = id,
+            indexReader = indexReader,
+            valueReader = valueReader,
+            indexOffset = indexOffset,
+            nextIndexOffset = nextIndexOffset,
+            nextIndexSize = nextIndexSize,
+            previous = previous
+          ) getOrElse {
+            RemoveNonEmptyMetaEntryIdReader.read(
+              id = id,
+              indexReader = indexReader,
+              valueReader = valueReader,
+              indexOffset = indexOffset,
+              nextIndexOffset = nextIndexOffset,
+              nextIndexSize = nextIndexSize,
+              previous = previous
+            ) getOrElse Failure(SegmentException.InvalidEntryId(id))
           }
-        } orElse {
-          RangeEntryId.contains(id) map {
-            id =>
-              RangeEmptyMetaEntryIdReader.read(
-                id = id,
-                indexReader = indexReader,
-                valueReader = valueReader,
-                indexOffset = indexOffset,
-                nextIndexOffset = nextIndexOffset,
-                nextIndexSize = nextIndexSize,
-                previous = previous
-              ) orElse {
-                RangeNonEmptyMetaEntryIdReader.read(
-                  id = id,
-                  indexReader = indexReader,
-                  valueReader = valueReader,
-                  indexOffset = indexOffset,
-                  nextIndexOffset = nextIndexOffset,
-                  nextIndexSize = nextIndexSize,
-                  previous = previous
-                )
-              }
+        else if (RangeEntryId.contains(id))
+          RangeEmptyMetaEntryIdReader.read(
+            id = id,
+            indexReader = indexReader,
+            valueReader = valueReader,
+            indexOffset = indexOffset,
+            nextIndexOffset = nextIndexOffset,
+            nextIndexSize = nextIndexSize,
+            previous = previous
+          ) getOrElse {
+            RangeNonEmptyMetaEntryIdReader.read(
+              id = id,
+              indexReader = indexReader,
+              valueReader = valueReader,
+              indexOffset = indexOffset,
+              nextIndexOffset = nextIndexOffset,
+              nextIndexSize = nextIndexSize,
+              previous = previous
+            ) getOrElse Failure(SegmentException.InvalidEntryId(id))
           }
-        } getOrElse {
+        else
           Failure(SegmentException.InvalidEntryId(id))
-        }
     }
 }

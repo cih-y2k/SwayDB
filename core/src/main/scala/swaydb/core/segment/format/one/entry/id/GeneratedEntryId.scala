@@ -6,7 +6,7 @@ trait GeneratedEntryId {
 
   def lastId: Int
 
-  def contains(id: Int): Option[Int]
+  def contains(id: Int): Boolean
 
   def keyIdsList: List[EntryId]
 

@@ -252,9 +252,6 @@ object TemplateRemoveEntryId extends GeneratedEntryId {
       (keyIdsList.head.id, keyIdsList.last.id)
   }
 
-  def contains(id: Int): Option[Int] =
-    if (id >= headId && id <= lastId)
-      Some(id)
-    else
-      None
+  def contains(id: Int): Boolean =
+    id >= headId && id <= lastId
 }

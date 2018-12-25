@@ -767,7 +767,6 @@ private[core] object Transient {
     override val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition) =
       KeyValueEntryWriter.write(
         current = this,
-        entryId = RemoveEntryId,
         compressDuplicateValues = false
       )
 
@@ -969,7 +968,6 @@ private[core] object Transient {
     val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition): (Slice[Byte], Option[Slice[Byte]], Int, Int) =
       KeyValueEntryWriter.write(
         current = this,
-        entryId = PutEntryId,
         compressDuplicateValues = compressDuplicateValues
       )
 
@@ -1186,7 +1184,6 @@ private[core] object Transient {
     val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition): (Slice[Byte], Option[Slice[Byte]], Int, Int) =
       KeyValueEntryWriter.write(
         current = this,
-        entryId = UpdateEntryId,
         compressDuplicateValues = compressDuplicateValues
       )
     override val hasValueEntryBytes: Boolean = previous.exists(_.hasValueEntryBytes) || valueEntryBytes.exists(_.nonEmpty)
@@ -1294,7 +1291,6 @@ private[core] object Transient {
     val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition): (Slice[Byte], Option[Slice[Byte]], Int, Int) =
       KeyValueEntryWriter.write(
         current = this,
-        entryId = RangeEntryId,
         //It's highly likely that two sequential key-values within the same range have the same value after the range split occurs. So this is always set to true.
         compressDuplicateValues = true
       )
@@ -1379,7 +1375,6 @@ private[core] object Transient {
     val (indexEntryBytes, valueEntryBytes, currentStartValueOffsetPosition, currentEndValueOffsetPosition): (Slice[Byte], Option[Slice[Byte]], Int, Int) =
       KeyValueEntryWriter.write(
         current = this,
-        entryId = GroupEntryId,
         //it's highly unlikely that 2 groups after compression will have duplicate values.
         //compressDuplicateValues check is unnecessary since the value bytes of a group can be large.
         compressDuplicateValues = false

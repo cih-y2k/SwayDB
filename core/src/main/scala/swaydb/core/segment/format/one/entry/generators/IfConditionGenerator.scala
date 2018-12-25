@@ -40,7 +40,9 @@ object IfConditionGenerator extends App {
     val targetIdClass = Paths.get(s"${System.getProperty("user.dir")}/core/src/main/scala/swaydb/core/segment/format/one/entry/reader/matchers/$className.scala")
     val allLines = Files.readAllLines(targetIdClass).asScala
     val writer = new PrintWriter(targetIdClass.toFile)
-    val failure = """scala.util.Failure(new Exception(this.getClass.getSimpleName + " - Reader not implemented for id: " + id))"""
+
+//    val failure = """scala.util.Failure(new Exception(this.getClass.getSimpleName + " - Reader not implemented for id: " + id))"""
+    val notFound = "None"
 
     val defaultGroupSize = 20
     val groupSize = if(ids.size < defaultGroupSize * 2) ids.size / 2 else defaultGroupSize
@@ -55,9 +57,9 @@ object IfConditionGenerator extends App {
 
                 val targetFunction =
                   if (className.contains("Remove"))
-                    s"reader($typedId, indexReader, indexOffset, nextIndexOffset, nextIndexSize, previous)"
+                    s"Some(reader($typedId, indexReader, indexOffset, nextIndexOffset, nextIndexSize, previous))"
                   else
-                    s"reader($typedId, indexReader, valueReader, indexOffset, nextIndexOffset, nextIndexSize, previous)"
+                    s"Some(reader($typedId, indexReader, valueReader, indexOffset, nextIndexOffset, nextIndexSize, previous))"
 
                 val ifCondition = s"if (id == $typedId.id) $targetFunction"
 
@@ -65,7 +67,7 @@ object IfConditionGenerator extends App {
                   s"\t\t\t$ifCondition"
                 else if (inGroupIndex == groupedIds.size - 1) {
                   s"""\t\t\telse $ifCondition
-                     |\t\t\telse $failure""".stripMargin
+                     |\t\t\telse $notFound""".stripMargin
                 } else
                   s"\t\t\telse $ifCondition"
             } mkString "\n"
@@ -79,7 +81,7 @@ object IfConditionGenerator extends App {
       }
 
     val lastElse =
-      s"""\t\telse $failure"""
+      s"""\t\telse $notFound"""
 
     val conditionStartIndex = allLines.zipWithIndex.find { case (line, index) => line.contains("//GENERATED") }.get._2
     val allNewLines = allLines.take(conditionStartIndex) ++ Seq("\t//GENERATED CONDITIONS") ++ allNewConditions ++ Seq(lastElse, "}")

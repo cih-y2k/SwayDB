@@ -47,10 +47,10 @@ class FixedEntryReaderWriterSpec extends WordSpec with CommonAssertions {
 
   "write and read two fixed entries" in {
     runThis(1000.times) {
-      val keyValues = randomizedIntKeyValues(count = 1, addRandomGroups = false, addRandomTimes = true)
+      val keyValues = randomizedIntKeyValues(count = 1, addRandomGroups = false)
       val previous = keyValues.head
 
-      if(previous.isRange)
+      if(!previous.isRange)
         println("debug")
 
       val duplicateValues = if (Random.nextBoolean()) previous.value else randomStringOption

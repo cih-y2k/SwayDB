@@ -43,7 +43,7 @@ class GroupEntryReaderWriterSpec extends WordSpec with CommonAssertions {
 
   "write and read Group entries with other entries" in {
     runThis(1000.times) {
-      val keyValues = randomizedIntKeyValues(count = 1, addRandomGroups = false, addRandomTimes = true)
+      val keyValues = randomizedIntKeyValues(count = 1, addRandomGroups = false)
       val previous = keyValues.head
 
       val next = randomGroup().updateStats(0.1, previous = Some(previous))
