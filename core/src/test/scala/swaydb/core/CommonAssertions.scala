@@ -150,9 +150,9 @@ trait CommonAssertions extends TryAssert with FutureBase with TestData {
       fromValue match {
         case _: Value.Remove =>
           None
-        case Value.Put(value, deadline, appliedFunctions) =>
+        case Value.Put(value, deadline) =>
           if (deadline.forall(_.hasTimeLeft()))
-            Some(Memory.Put(key, value, deadline, appliedFunctions))
+            Some(Memory.Put(key, value, deadline))
           else
             None
         case _: Value.Update =>
@@ -163,7 +163,7 @@ trait CommonAssertions extends TryAssert with FutureBase with TestData {
   implicit class IsKeyValueExpectedInLastLevel(keyValue: Memory.Fixed) {
     def isExpectedInLastLevel: Boolean =
       keyValue match {
-        case Memory.Put(key, value, deadline, appliedFunctions) =>
+        case Memory.Put(key, value, deadline) =>
           if (deadline.forall(_.hasTimeLeft()))
             true
           else
@@ -220,14 +220,14 @@ trait CommonAssertions extends TryAssert with FutureBase with TestData {
       keyValue match {
         case fixed: KeyValue.WriteOnly.Fixed =>
           fixed match {
-            case Transient.Remove(key, deadline, previous, falsePositiveRate, appliedFunctions) =>
-              Memory.Remove(key, deadline, appliedFunctions)
+            case Transient.Remove(key, deadline, previous, falsePositiveRate) =>
+              Memory.Remove(key, deadline)
 
-            case Transient.Update(key, value, deadline, previous, falsePositiveRate, compressDuplicateValues, updateFunctions, appliedFunctions) =>
-              Memory.Update(key, value, deadline, updateFunctions, appliedFunctions)
+            case Transient.Update(key, value, deadline, previous, falsePositiveRate, compressDuplicateValues) =>
+              Memory.Update(key, value, deadline)
 
-            case Transient.Put(key, value, deadline, previous, falsePositiveRate, compressDuplicateValues, appliedFunctions) =>
-              Memory.Put(key, value, deadline, appliedFunctions)
+            case Transient.Put(key, value, deadline, previous, falsePositiveRate, compressDuplicateValues) =>
+              Memory.Put(key, value, deadline)
           }
 
         case range: KeyValue.WriteOnly.Range =>
@@ -317,36 +317,32 @@ trait CommonAssertions extends TryAssert with FutureBase with TestData {
           memory match {
             case fixed: Memory.Fixed =>
               fixed match {
-                case Memory.Put(key, value, deadline, appliedFunctions) =>
+                case Memory.Put(key, value, deadline) =>
                   Transient.Put(
                     key = key,
                     value = value,
                     falsePositiveRate = 0.1,
                     previous = None,
                     deadline = deadline,
-                    compressDuplicateValues = true,
-                    appliedFunctions = appliedFunctions
+                    compressDuplicateValues = true
                   )
 
-                case Memory.Update(key, value, deadline, updateFunctions, appliedFunctions) =>
+                case Memory.Update(key, value, deadline) =>
                   Transient.Update(
                     key = key,
                     value = value,
                     falsePositiveRate = 0.1,
                     previous = None,
                     deadline = deadline,
-                    compressDuplicateValues = true,
-                    updateFunctions = updateFunctions,
-                    appliedFunctions = appliedFunctions
+                    compressDuplicateValues = true
                   )
 
-                case Memory.Remove(key, deadline, appliedFunctions) =>
+                case Memory.Remove(key, deadline) =>
                   Transient.Remove(
                     key = key,
                     falsePositiveRate = 0.1,
                     previous = None,
-                    deadline = deadline,
-                    appliedFunctions = appliedFunctions
+                    deadline
                   )
               }
             case Memory.Range(fromKey, toKey, fromValue, rangeValue) =>
@@ -374,36 +370,32 @@ trait CommonAssertions extends TryAssert with FutureBase with TestData {
           persistent match {
             case persistent: Persistent.Fixed =>
               persistent match {
-                case put @ Persistent.Put(key, deadline, valueReader, nextIndexOffset, nextIndexSize, indexOffset, valueOffset, valueLength, appliedFunctions) =>
+                case put @ Persistent.Put(key, deadline, valueReader, nextIndexOffset, nextIndexSize, indexOffset, valueOffset, valueLength) =>
                   Transient.Put(
                     key = key,
                     value = put.getOrFetchValue.assertGetOpt,
                     deadline = deadline,
                     previous = None,
                     falsePositiveRate = 0.1,
-                    compressDuplicateValues = true,
-                    appliedFunctions = appliedFunctions
+                    compressDuplicateValues = true
                   )
 
-                case put @ Persistent.Update(key, deadline, valueReader, nextIndexOffset, nextIndexSize, indexOffset, valueOffset, valueLength, updateFunctions, appliedFunctions) =>
+                case put @ Persistent.Update(key, deadline, valueReader, nextIndexOffset, nextIndexSize, indexOffset, valueOffset, valueLength) =>
                   Transient.Update(
                     key = key,
                     value = put.getOrFetchValue.assertGetOpt,
                     falsePositiveRate = 0.1,
                     previous = None,
                     deadline = deadline,
-                    compressDuplicateValues = true,
-                    updateFunctions = updateFunctions,
-                    appliedFunctions = appliedFunctions
+                    compressDuplicateValues = true
                   )
 
-                case Persistent.Remove(_key, deadline, indexOffset, nextIndexOffset, nextIndexSize, appliedFunctions) =>
+                case Persistent.Remove(_key, deadline, indexOffset, nextIndexOffset, nextIndexSize) =>
                   Transient.Remove(
                     key = _key,
                     falsePositiveRate =  0.1,
                     previous = None,
-                    deadline = deadline,
-                    appliedFunctions = appliedFunctions
+                    deadline
                   )
               }
 
@@ -465,14 +457,14 @@ trait CommonAssertions extends TryAssert with FutureBase with TestData {
           persistent match {
             case persistent: Persistent.Fixed =>
               persistent match {
-                case put @ Persistent.Put(key, deadline, valueReader, nextIndexOffset, nextIndexSize, indexOffset, valueOffset, valueLength, appliedFunctions) =>
-                  Memory.Put(key, put.getOrFetchValue.assertGetOpt, deadline, appliedFunctions)
+                case put @ Persistent.Put(key, deadline, valueReader, nextIndexOffset, nextIndexSize, indexOffset, valueOffset, valueLength) =>
+                  Memory.Put(key, put.getOrFetchValue.assertGetOpt, deadline)
 
-                case put @ Persistent.Update(key, deadline, valueReader, nextIndexOffset, nextIndexSize, indexOffset, valueOffset, valueLength, updateFunctions, appliedFunctions) =>
-                  Memory.Update(key, put.getOrFetchValue.assertGetOpt, deadline, updateFunctions, appliedFunctions)
+                case put @ Persistent.Update(key, deadline, valueReader, nextIndexOffset, nextIndexSize, indexOffset, valueOffset, valueLength) =>
+                  Memory.Update(key, put.getOrFetchValue.assertGetOpt, deadline)
 
-                case Persistent.Remove(_key, deadline, indexOffset, nextIndexOffset, nextIndexSize, appliedFunctions) =>
-                  Memory.Remove(_key, deadline, appliedFunctions)
+                case Persistent.Remove(_key, deadline, indexOffset, nextIndexOffset, nextIndexSize) =>
+                  Memory.Remove(_key, deadline)
               }
 
             case range @ Persistent.Range(_fromKey, _toKey, valueReader, nextIndexOffset, nextIndexSize, indexOffset, valueOffset, valueLength) =>
@@ -491,11 +483,11 @@ trait CommonAssertions extends TryAssert with FutureBase with TestData {
     //stringify the skipList so that it's readable
     def asString(value: Value): String =
       value match {
-        case Value.Remove(deadline, appliedFunctions) =>
+        case Value.Remove(deadline) =>
           s"Remove(deadline = $deadline)"
-        case Value.Put(value, deadline, appliedFunctions) =>
+        case Value.Put(value, deadline) =>
           s"Put(${value.map(_.read[Int]).getOrElse("None")}, deadline = $deadline)"
-        case Value.Update(value, deadline, updateFunctions, appliedFunctions) =>
+        case Value.Update(value, deadline) =>
           s"Update(${value.map(_.read[Int]).getOrElse("None")}, deadline = $deadline)"
       }
   }

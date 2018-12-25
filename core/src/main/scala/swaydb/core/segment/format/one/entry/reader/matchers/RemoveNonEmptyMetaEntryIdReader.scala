@@ -22,7 +22,6 @@ package swaydb.core.segment.format.one.entry.reader.matchers
 import scala.util.Try
 import swaydb.core.data.Persistent
 import swaydb.core.segment.format.one.entry.id.RemoveEntryId
-import swaydb.core.segment.format.one.entry.reader.MetaReader._
 import swaydb.core.segment.format.one.entry.reader.DeadlineReaders._
 import swaydb.core.segment.format.one.entry.reader.KeyReaders._
 import swaydb.core.segment.format.one.entry.reader.matchers.RemoveReader._

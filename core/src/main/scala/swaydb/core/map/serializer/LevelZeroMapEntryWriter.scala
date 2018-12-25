@@ -38,16 +38,12 @@ object LevelZeroMapEntryWriter {
         .addInt(entry.value.key.size)
         .addAll(entry.value.key)
         .addLong(entry.value.deadline.map(_.time.toNanos).getOrElse(0))
-        .addInt(entry.value.appliedFunctions.requiredBytes())
-        .addAll(entry.value.appliedFunctions.toBytes())
 
     override def bytesRequired(entry: MapEntry.Put[Slice[Byte], Memory.Remove]): Int =
       ByteSizeOf.int +
         ByteSizeOf.int +
         entry.value.key.size +
-        ByteSizeOf.long +
-        ByteSizeOf.int +
-        entry.value.appliedFunctions.requiredBytes()
+        ByteSizeOf.long
   }
 
   implicit object Level0PutWriter extends MapEntryWriter[MapEntry.Put[Slice[Byte], Memory.Put]] {
@@ -64,8 +60,6 @@ object LevelZeroMapEntryWriter {
         .addInt(entry.value.value.map(_.size).getOrElse(0))
         .addAll(entry.value.value.getOrElse(Slice.emptyBytes))
         .addLong(entry.value.deadline.map(_.time.toNanos).getOrElse(0))
-        .addInt(entry.value.appliedFunctions.requiredBytes())
-        .addAll(entry.value.appliedFunctions.toBytes())
 
     override def bytesRequired(entry: MapEntry.Put[Slice[Byte], Memory.Put]): Int =
       if (entry.value.key.isEmpty)
@@ -76,9 +70,7 @@ object LevelZeroMapEntryWriter {
           entry.value.key.size +
           ByteSizeOf.int +
           entry.value.value.map(_.size).getOrElse(0) +
-          ByteSizeOf.long +
-          ByteSizeOf.int +
-          entry.value.appliedFunctions.requiredBytes()
+          ByteSizeOf.long
   }
 
   implicit object Level0UpdateWriter extends MapEntryWriter[MapEntry.Put[Slice[Byte], Memory.Update]] {
@@ -95,10 +87,6 @@ object LevelZeroMapEntryWriter {
         .addInt(entry.value.value.map(_.size).getOrElse(0))
         .addAll(entry.value.value.getOrElse(Slice.emptyBytes))
         .addLong(entry.value.deadline.map(_.time.toNanos).getOrElse(0))
-        .addInt(entry.value.updateFunctions.requiredBytes())
-        .addAll(entry.value.updateFunctions.toBytes())
-        .addInt(entry.value.appliedFunctions.requiredBytes())
-        .addAll(entry.value.appliedFunctions.toBytes())
 
     override def bytesRequired(entry: MapEntry.Put[Slice[Byte], Memory.Update]): Int =
       if (entry.value.key.isEmpty)
@@ -109,11 +97,7 @@ object LevelZeroMapEntryWriter {
           entry.value.key.size +
           ByteSizeOf.int +
           entry.value.value.map(_.size).getOrElse(0) +
-          ByteSizeOf.long +
-          ByteSizeOf.int +
-          entry.value.updateFunctions.requiredBytes() +
-          ByteSizeOf.int +
-          entry.value.appliedFunctions.requiredBytes()
+          ByteSizeOf.long
   }
 
   implicit object Level0RangeWriter extends MapEntryWriter[MapEntry.Put[Slice[Byte], Memory.Range]] {

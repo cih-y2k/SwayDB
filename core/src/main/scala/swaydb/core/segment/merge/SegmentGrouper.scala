@@ -390,7 +390,7 @@ private[merge] object SegmentGrouper extends LazyLogging {
             TryUtil.successUnit
           else
             fixed match {
-              case Memory.Put(key, value, deadline, appliedFunctions) =>
+              case Memory.Put(key, value, deadline) =>
                 doAdd(
                   Transient.Put(
                     key = key,
@@ -398,8 +398,7 @@ private[merge] object SegmentGrouper extends LazyLogging {
                     deadline = deadline,
                     _,
                     falsePositiveRate = bloomFilterFalsePositiveRate,
-                    compressDuplicateValues = compressDuplicateValues,
-                    appliedFunctions = appliedFunctions
+                    compressDuplicateValues = compressDuplicateValues
                   )
                 )
 
@@ -413,8 +412,7 @@ private[merge] object SegmentGrouper extends LazyLogging {
                         deadline = put.deadline,
                         _,
                         falsePositiveRate = bloomFilterFalsePositiveRate,
-                        compressDuplicateValues = compressDuplicateValues,
-                        appliedFunctions = put.appliedFunctions
+                        compressDuplicateValues = compressDuplicateValues
                       )
                     )
                 }
@@ -426,14 +424,13 @@ private[merge] object SegmentGrouper extends LazyLogging {
                       key = keyValueToAdd.key,
                       deadline = remove.deadline,
                       _,
-                      falsePositiveRate = bloomFilterFalsePositiveRate,
-                      appliedFunctions = remove.appliedFunctions
+                      falsePositiveRate = bloomFilterFalsePositiveRate
                     )
                   )
                 else
                   TryUtil.successUnit
 
-              case Memory.Update(key, value, deadline, updateFunctions, appliedFunctions) =>
+              case Memory.Update(key, value, deadline) =>
                 if (!isLastLevel)
                   doAdd(
                     Transient.Update(
@@ -442,9 +439,7 @@ private[merge] object SegmentGrouper extends LazyLogging {
                       deadline = deadline,
                       _,
                       falsePositiveRate = bloomFilterFalsePositiveRate,
-                      compressDuplicateValues = compressDuplicateValues,
-                      updateFunctions = updateFunctions,
-                      appliedFunctions = appliedFunctions
+                      compressDuplicateValues = compressDuplicateValues
                     )
                   )
                 else
@@ -461,9 +456,7 @@ private[merge] object SegmentGrouper extends LazyLogging {
                           deadline = update.deadline,
                           _,
                           falsePositiveRate = bloomFilterFalsePositiveRate,
-                          compressDuplicateValues = compressDuplicateValues,
-                          updateFunctions = update.updateFunctions,
-                          appliedFunctions = update.appliedFunctions
+                          compressDuplicateValues = compressDuplicateValues
                         )
                       )
                   }
@@ -478,7 +471,7 @@ private[merge] object SegmentGrouper extends LazyLogging {
                 fromValue match {
                   case Some(fromValue) =>
                     fromValue match {
-                      case put @ Value.Put(fromValue, deadline, appliedFunctions) =>
+                      case put @ Value.Put(fromValue, deadline) =>
                         if (put.hasTimeLeft())
                           doAdd(
                             Transient.Put(
@@ -487,8 +480,7 @@ private[merge] object SegmentGrouper extends LazyLogging {
                               deadline = deadline,
                               _,
                               falsePositiveRate = bloomFilterFalsePositiveRate,
-                              compressDuplicateValues = compressDuplicateValues,
-                              appliedFunctions = appliedFunctions
+                              compressDuplicateValues = compressDuplicateValues
                             )
                           )
                         else

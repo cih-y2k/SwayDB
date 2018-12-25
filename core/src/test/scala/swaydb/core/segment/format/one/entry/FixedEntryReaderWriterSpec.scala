@@ -22,7 +22,7 @@ package swaydb.core.segment.format.one.entry
 import org.scalatest.WordSpec
 import scala.util.Random
 import swaydb.core.CommonAssertions
-import swaydb.core.data.{AppliedFunctions, Transient, UpdateFunctions}
+import swaydb.core.data.Transient
 import swaydb.core.io.reader.Reader
 import swaydb.core.segment.format.one.entry.reader.EntryReader
 import swaydb.data.order.KeyOrder
@@ -38,9 +38,7 @@ class FixedEntryReaderWriterSpec extends WordSpec with CommonAssertions {
     runThis(1000.times) {
       val entry = randomFixedKeyValue(
         key = randomIntMax(),
-        value = randomStringOption,
-        updateFunctions = eitherOne(UpdateFunctions.empty, UpdateFunctions(randomSeqBytes())),
-        appliedFunctions = eitherOne(AppliedFunctions.empty, AppliedFunctions(randomSeqBytes()))
+        value = randomStringOption
       ).toTransient
       println("write: " + entry)
 
@@ -62,8 +60,8 @@ class FixedEntryReaderWriterSpec extends WordSpec with CommonAssertions {
           Transient.Remove(
             key = randomIntMax(),
             deadline = duplicateDeadline,
-            previous = Some(previous), falsePositiveRate = 0.1,
-            appliedFunctions = eitherOne(AppliedFunctions.empty, AppliedFunctions(randomSeqBytes()))
+            previous = Some(previous),
+            0.1
           )
         else
           Transient.Put(
@@ -72,8 +70,7 @@ class FixedEntryReaderWriterSpec extends WordSpec with CommonAssertions {
             deadline = duplicateDeadline,
             previous = Some(previous),
             falsePositiveRate = 0.1,
-            compressDuplicateValues = true,
-            appliedFunctions = eitherOne(AppliedFunctions.empty, AppliedFunctions(randomSeqBytes()))
+            compressDuplicateValues = true
           )
 
       println("previous: " + previous)

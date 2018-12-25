@@ -23,7 +23,6 @@ import swaydb.core.data.Persistent
 import swaydb.core.segment.format.one.entry.reader.DeadlineReaders._
 import swaydb.core.segment.format.one.entry.reader.KeyReaders._
 import swaydb.core.segment.format.one.entry.reader.ValueReader._
-import swaydb.core.segment.format.one.entry.reader.MetaReader._
 import swaydb.core.segment.format.one.entry.reader.matchers.PutReader._
 import swaydb.data.slice.Reader
 import scala.util.Try

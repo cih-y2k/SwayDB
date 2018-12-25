@@ -63,26 +63,22 @@ trait TestData extends TryAssert {
 
   def randomRemoveKeyValue(key: Slice[Byte],
                            deadline: Option[Deadline] = randomDeadlineOption): Memory.Remove =
-    Memory.Remove(key, deadline, AppliedFunctions.empty)
+    Memory.Remove(key, deadline)
 
   def randomFixedKeyValue(key: Slice[Byte],
                           value: Option[Slice[Byte]] = randomStringOption,
-                          deadline: Option[Deadline] = randomDeadlineOption,
-                          updateFunctions: UpdateFunctions = UpdateFunctions.empty,
-                          appliedFunctions: AppliedFunctions = AppliedFunctions.empty): Memory.Fixed =
+                          deadline: Option[Deadline] = randomDeadlineOption): Memory.Fixed =
     if (Random.nextBoolean())
-      Memory.Put(key, value, deadline, appliedFunctions)
+      Memory.Put(key, value, deadline)
     else if (Random.nextBoolean())
-      Memory.Remove(key, deadline, appliedFunctions)
+      Memory.Remove(key, deadline)
     else
-      randomUpdateKeyValue(key, value, deadline, updateFunctions, appliedFunctions)
+      randomUpdateKeyValue(key, value, deadline)
 
   def randomUpdateKeyValue(key: Slice[Byte],
                            value: Option[Slice[Byte]] = randomStringOption,
-                           deadline: Option[Deadline] = randomDeadlineOption,
-                           updateFunctions: UpdateFunctions = UpdateFunctions.empty,
-                           appliedFunctions: AppliedFunctions = AppliedFunctions.empty): Memory.Update =
-    Memory.Update(key, value, deadline, updateFunctions, appliedFunctions)
+                           deadline: Option[Deadline] = randomDeadlineOption): Memory.Update =
+    Memory.Update(key, value, deadline)
 
   def randomCompression(minCompressionPercentage: Double = Double.MinValue): CompressionInternal =
     CompressionInternal.random(minCompressionPercentage = minCompressionPercentage)
@@ -111,25 +107,13 @@ trait TestData extends TryAssert {
     else
       None
 
-  def randomAppliedFunctions() =
-    if (Random.nextBoolean())
-      AppliedFunctions(randomSeqBytes())
-    else
-      AppliedFunctions.empty
-
-  def randomUpdatedFunctions() =
-    if (Random.nextBoolean())
-      UpdateFunctions(randomSeqBytes())
-    else
-      UpdateFunctions.empty
-
   def randomFromValue(): Value.FromValue =
     if (Random.nextBoolean())
-      Value.Put(randomStringOption, randomDeadlineOption, randomAppliedFunctions())
+      Value.Put(randomStringOption, randomDeadlineOption)
     else if (Random.nextBoolean())
-      Value.Remove(randomDeadlineOption, randomAppliedFunctions())
+      Value.Remove(randomDeadlineOption)
     else
-      Value.Update(randomStringOption, randomDeadlineOption, randomUpdatedFunctions(), randomAppliedFunctions())
+      Value.Update(randomStringOption, randomDeadlineOption)
 
   def randomRangeValue(): Value.RangeValue =
     if (Random.nextBoolean())
@@ -236,9 +220,7 @@ trait TestData extends TryAssert {
                          addRandomRemoveDeadlines: Boolean = false,
                          addRandomPutDeadlines: Boolean = false,
                          addRandomRanges: Boolean = false,
-                         addRandomGroups: Boolean = false,
-                         addRandomAppliedFunctions: Boolean = false,
-                         addRandomUpdatedFunctions: Boolean = false): Slice[KeyValue.WriteOnly] = {
+                         addRandomGroups: Boolean = false): Slice[KeyValue.WriteOnly] = {
     //    println(
     //      s"""
     //        |nonValue : $nonValue
@@ -263,8 +245,7 @@ trait TestData extends TryAssert {
           deadline = if (addRandomPutDeadlines && Random.nextBoolean()) Some(10.seconds.fromNow) else None,
           compressDuplicateValues = true,
           value = None,
-          falsePositiveRate = 0.1,
-          appliedFunctions = randomAppliedFunctions()
+          falsePositiveRate = 0.1
         )
         key = key + 1
       } else if ((addRandomRemoves || addRandomRanges || addRandomGroups) && Random.nextBoolean()) {
@@ -273,8 +254,7 @@ trait TestData extends TryAssert {
             key: Slice[Byte],
             falsePositiveRate = 0.1,
             previous = slice.lastOption,
-            deadline = if (addRandomRemoveDeadlines && Random.nextBoolean()) Some(10.seconds.fromNow) else None,
-            appliedFunctions = if (addRandomAppliedFunctions && Random.nextBoolean()) AppliedFunctions(randomSeqBytes()) else AppliedFunctions.empty
+            if (addRandomRemoveDeadlines && Random.nextBoolean()) Some(10.seconds.fromNow) else None
           )
 
           key = key + 1
@@ -308,8 +288,6 @@ trait TestData extends TryAssert {
               addRandomRemoveDeadlines = addRandomRemoveDeadlines,
               addRandomPutDeadlines = addRandomPutDeadlines,
               addRandomRanges = addRandomRanges,
-              addRandomAppliedFunctions = addRandomAppliedFunctions,
-              addRandomUpdatedFunctions = addRandomUpdatedFunctions,
               addRandomGroups = false //do not create more inner groups.
             )
 
@@ -329,8 +307,7 @@ trait TestData extends TryAssert {
           falsePositiveRate = 0.1,
           previous = slice.lastOption,
           compressDuplicateValues = true,
-          deadline = if (addRandomPutDeadlines && Random.nextBoolean()) Some(10.seconds.fromNow) else None,
-          appliedFunctions = if(addRandomAppliedFunctions) randomAppliedFunctions() else AppliedFunctions.empty
+          deadline = if (addRandomPutDeadlines && Random.nextBoolean()) Some(10.seconds.fromNow) else None
         )
         key = key + 1
       }

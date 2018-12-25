@@ -20,7 +20,7 @@
 package swaydb.core.segment.format.one.entry.reader.matchers
 
 import scala.util.Try
-import swaydb.core.data.{AppliedFunctions, Persistent}
+import swaydb.core.data.Persistent
 import swaydb.core.segment.format.one.entry.id.EntryId
 import swaydb.core.segment.format.one.entry.reader._
 import swaydb.data.slice.Reader
@@ -37,28 +37,23 @@ object PutReader {
                                                          deadlineReader: DeadlineReader[T],
                                                          valueOffsetReader: ValueOffsetReader[T],
                                                          valueLengthReader: ValueLengthReader[T],
-                                                         valueBytesReader: ValueReader[T],
-                                                         metaReader: MetaReader[T]): Try[Persistent.Put] =
+                                                         valueBytesReader: ValueReader[T]): Try[Persistent.Put] =
     deadlineReader.read(indexReader, previous) flatMap {
       deadline =>
         valueBytesReader.read(indexReader, previous) flatMap {
           valueOffsetAndLength =>
-            metaReader.read(indexReader) flatMap {
-              metaBytes =>
-                keyReader.read(indexReader, previous) map {
-                  key =>
-                    Persistent.Put(
-                      _key = key,
-                      deadline = deadline,
-                      valueReader = valueReader,
-                      nextIndexOffset = nextIndexOffset,
-                      nextIndexSize = nextIndexSize,
-                      indexOffset = indexOffset,
-                      valueOffset = valueOffsetAndLength.map(_._1).getOrElse(-1),
-                      valueLength = valueOffsetAndLength.map(_._2).getOrElse(0),
-                      appliedFunctions = metaBytes.map(_.appliedFunctions).getOrElse(AppliedFunctions.empty)
-                    )
-                }
+            keyReader.read(indexReader, previous) map {
+              key =>
+                Persistent.Put(
+                  _key = key,
+                  deadline = deadline,
+                  valueReader = valueReader,
+                  nextIndexOffset = nextIndexOffset,
+                  nextIndexSize = nextIndexSize,
+                  indexOffset = indexOffset,
+                  valueOffset = valueOffsetAndLength.map(_._1).getOrElse(-1),
+                  valueLength = valueOffsetAndLength.map(_._2).getOrElse(0)
+                )
             }
         }
     }

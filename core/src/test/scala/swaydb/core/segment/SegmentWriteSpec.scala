@@ -204,14 +204,14 @@ sealed trait SegmentWriteSpec extends TestBase with Benchmark {
             value match {
               case fixed: Memory.Fixed =>
                 fixed match {
-                  case Memory.Put(key, value, _, _) =>
+                  case Memory.Put(key, value, _) =>
                     key.underlyingArraySize shouldBe 1
                     value.foreach(_.underlyingArraySize shouldBe 1)
-                  case Memory.Update(key, value, _, _, _) =>
+                  case Memory.Update(key, value, _) =>
                     key.underlyingArraySize shouldBe 1
                     value.foreach(_.underlyingArraySize shouldBe 1)
 
-                  case Memory.Remove(key, _, _) =>
+                  case Memory.Remove(key, _) =>
                     key.underlyingArraySize shouldBe 1
 
                 }
@@ -221,30 +221,30 @@ sealed trait SegmentWriteSpec extends TestBase with Benchmark {
                 toKey.underlyingArraySize shouldBe 1
 
                 fromValue foreach {
-                  case Value.Put(value, _, _) =>
+                  case Value.Put(value, _) =>
                     value.foreach(_.underlyingArraySize shouldBe 1)
-                  case Value.Update(value, _, _, _) =>
+                  case Value.Update(value, _) =>
                     value.foreach(_.underlyingArraySize shouldBe 1)
-                  case Value.Remove(None, _) =>
+                  case Value.Remove(None) =>
                 }
 
                 rangeValue match {
-                  case Value.Update(value, _, _, _) =>
+                  case Value.Update(value, _) =>
                     value.foreach(_.underlyingArraySize shouldBe 1)
-                  case Value.Remove(None, _) =>
+                  case Value.Remove(None) =>
                 }
 
               case fixed: Persistent.Fixed =>
                 fixed match {
-                  case Persistent.Put(key, value, _, _, _, _, _, _, _) =>
+                  case Persistent.Put(key, value, _, _, _, _, _, _) =>
                     key.underlyingArraySize shouldBe 1
                     fixed.getOrFetchValue.assertGetOpt.foreach(_.underlyingArraySize shouldBe 1)
 
-                  case Persistent.Update(key, value, _, _, _, _, _, _, _, _) =>
+                  case Persistent.Update(key, value, _, _, _, _, _, _) =>
                     key.underlyingArraySize shouldBe 1
                     fixed.getOrFetchValue.assertGetOpt.foreach(_.underlyingArraySize shouldBe 1)
 
-                  case Persistent.Remove(key, _, _, _, _, _) =>
+                  case Persistent.Remove(key, _, _, _, _) =>
                     key.underlyingArraySize shouldBe 1
 
                 }
@@ -254,16 +254,16 @@ sealed trait SegmentWriteSpec extends TestBase with Benchmark {
                 toKey.underlyingArraySize shouldBe 1
                 val (fromValue, rangeValue) = range.fetchFromAndRangeValue.assertGet
                 fromValue foreach {
-                  case Value.Put(value, _, _) =>
+                  case Value.Put(value, _) =>
                     value.foreach(_.underlyingArraySize shouldBe 1)
-                  case Value.Update(value, _, _, _) =>
+                  case Value.Update(value, _) =>
                     value.foreach(_.underlyingArraySize shouldBe 1)
-                  case Value.Remove(None, _) =>
+                  case Value.Remove(None) =>
                 }
                 rangeValue match {
-                  case Value.Update(value, _, _, _) =>
+                  case Value.Update(value, _) =>
                     value.foreach(_.underlyingArraySize shouldBe 1)
-                  case Value.Remove(None, _) =>
+                  case Value.Remove(None) =>
                 }
             }
         }
@@ -717,7 +717,7 @@ sealed trait SegmentWriteSpec extends TestBase with Benchmark {
         unzipGroups(Segment.getAllKeyValues(0.1, segments).assertGet) shouldBe unzipGroups(keyValues).collect { //memory Segments does a split/merge and apply lastLevel rules.
           case keyValue: Transient.Put =>
             keyValue
-          case Transient.Range(fromKey, _, _, Some(Value.Put(fromValue, deadline, _)), _, _, _, _) if deadline.forall(_.hasTimeLeft()) =>
+          case Transient.Range(fromKey, _, _, Some(Value.Put(fromValue, deadline)), _, _, _, _) if deadline.forall(_.hasTimeLeft()) =>
             Transient.Put(fromKey, fromValue, 0.1, None, deadline, true)
         }.updateStats
     }
@@ -832,7 +832,7 @@ sealed trait SegmentWriteSpec extends TestBase with Benchmark {
       Segment.getAllKeyValues(0.1, segments).assertGet shouldBe unzipGroups(keyValues).collect {
         case keyValue: Transient.Put =>
           keyValue
-        case Transient.Range(fromKey, _, _, Some(Value.Put(fromValue, deadline, _)), _, _, _, _) if deadline.forall(_.hasTimeLeft()) =>
+        case Transient.Range(fromKey, _, _, Some(Value.Put(fromValue, deadline)), _, _, _, _) if deadline.forall(_.hasTimeLeft()) =>
           Transient.Put(fromKey, fromValue, 0.1, None, deadline, true)
       }.updateStats
     }

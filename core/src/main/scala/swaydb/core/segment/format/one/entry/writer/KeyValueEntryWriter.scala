@@ -36,10 +36,6 @@ object KeyValueEntryWriter {
     */
   def write[T <: KeyValue.WriteOnly](current: T,
                                      compressDuplicateValues: Boolean)(implicit bind: EntryIdBind[T]): (Slice[Byte], Option[Slice[Byte]], Int, Int) = {
-    //the chuck to write for applied functions. This get inserted before the key bytes.
-    //The result should also contain the unsigned Int size of the total bytes inserted as the head bytes
-    val metaBytes = MetaWriter.write(current)
-
     current.previous flatMap {
       previous =>
         compress(key = current.fullKey, previous = previous, minimumCommonBytes = 2) map {
@@ -49,8 +45,8 @@ object KeyValueEntryWriter {
               ValueWriter.write(
                 current = current,
                 compressDuplicateValues = compressDuplicateValues,
-                entryId = if (metaBytes.isDefined) bind.entryId.nonEmptyMeta.keyFullyCompressed else bind.entryId.emptyMeta.keyFullyCompressed,
-                plusSize = metaBytes.map(_.size).getOrElse(0) + sizeOf(current.fullKey.size) //write the size of keys that were compressed.
+                entryId = bind.entryId.nonEmptyMeta.keyFullyCompressed,
+                plusSize = sizeOf(current.fullKey.size) //write the size of keys that were compressed.
               )
 
 //            assert(indexBytes.isFull, s"indexSlice is not full actual: ${indexBytes.written} - expected: ${indexBytes.size}")
@@ -58,7 +54,6 @@ object KeyValueEntryWriter {
 //
             val bytes =
               indexBytes
-                .addAll(metaBytes.getOrElse(Slice.emptyBytes))
                 .addIntUnsigned(current.fullKey.size)
 
             (bytes, valueBytes, valueStartOffset, valueEndOffset)
@@ -68,13 +63,12 @@ object KeyValueEntryWriter {
               ValueWriter.write(
                 current = current,
                 compressDuplicateValues = compressDuplicateValues,
-                entryId = if (metaBytes.isDefined) bind.entryId.nonEmptyMeta.keyPartiallyCompressed else bind.entryId.emptyMeta.keyPartiallyCompressed,
-                plusSize = metaBytes.map(_.size).getOrElse(0) + sizeOf(commonBytes) + remainingBytes.size //write the size of keys compressed and also the uncompressed Bytes
+                entryId = bind.entryId.nonEmptyMeta.keyPartiallyCompressed,
+                plusSize = sizeOf(commonBytes) + remainingBytes.size //write the size of keys compressed and also the uncompressed Bytes
               )
 
             val bytes =
               indexBytes
-                .addAll(metaBytes.getOrElse(Slice.emptyBytes))
                 .addIntUnsigned(commonBytes)
                 .addAll(remainingBytes)
 
@@ -86,13 +80,12 @@ object KeyValueEntryWriter {
         ValueWriter.write(
           current = current,
           compressDuplicateValues = compressDuplicateValues,
-          entryId = if (metaBytes.isDefined) bind.entryId.nonEmptyMeta.keyUncompressed else bind.entryId.emptyMeta.keyUncompressed,
-          plusSize = metaBytes.map(_.size).getOrElse(0) + current.fullKey.size //write key bytes.
+          entryId = bind.entryId.nonEmptyMeta.keyUncompressed,
+          plusSize = current.fullKey.size //write key bytes.
         )
 
       val bytes =
         indexBytes
-          .addAll(metaBytes.getOrElse(Slice.emptyBytes))
           .addAll(current.fullKey)
 
       (bytes, valueBytes, valueStartOffset, valueEndOffset)

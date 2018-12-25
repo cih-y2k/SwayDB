@@ -108,8 +108,7 @@ private[core] object Segment extends LazyLogging {
               keyUnsliced,
               Memory.Remove(
                 key = keyUnsliced,
-                deadline = remove.deadline,
-                appliedFunctions = remove.appliedFunctions
+                deadline = remove.deadline
               )
             )
             bloomFilter.foreach(_ add keyUnsliced)
@@ -126,8 +125,7 @@ private[core] object Segment extends LazyLogging {
                       Memory.Put(
                         key = keyUnsliced,
                         value = Some(value.unslice()),
-                        deadline = put.deadline,
-                        appliedFunctions = put.appliedFunctions.unslice()
+                        deadline = put.deadline
                       )
                     )
 
@@ -137,8 +135,7 @@ private[core] object Segment extends LazyLogging {
                       Memory.Put(
                         key = keyUnsliced,
                         value = None,
-                        deadline = put.deadline,
-                        appliedFunctions = put.appliedFunctions.unslice()
+                        deadline = put.deadline
                       )
                     )
                 }
@@ -157,9 +154,7 @@ private[core] object Segment extends LazyLogging {
                       Memory.Update(
                         key = keyUnsliced,
                         value = Some(value.unslice()),
-                        deadline = update.deadline,
-                        updateFunctions = update.updateFunctions.unslice(),
-                        appliedFunctions = update.appliedFunctions.unslice()
+                        deadline = update.deadline
                       )
                     )
 
@@ -169,9 +164,7 @@ private[core] object Segment extends LazyLogging {
                       Memory.Update(
                         key = keyUnsliced,
                         value = None,
-                        deadline = update.deadline,
-                        updateFunctions = update.updateFunctions.unslice(),
-                        appliedFunctions = update.appliedFunctions.unslice()
+                        deadline = update.deadline
                       )
                     )
                 }
